@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PaedColour">
+<meta name="theme-color" content="#2c2416">
+<meta name="description" content="Paediatric stool and vomit colour identification tool with camera-based colour matching and UK biliary atresia stool colour card screening.">
+<title>Paediatric Colour Guide</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f8f4ec; color: #2c2416;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.container { max-width: 540px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; }
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, #2c2416, #4a3520);
+  padding: 28px 24px 24px; position: relative; overflow: hidden;
+}
+.header::after {
+  content: ''; position: absolute; top: -30px; right: -30px;
+  width: 140px; height: 140px; border-radius: 50%; background: rgba(255,255,255,0.03);
+}
+.header-tag { font-size: 11px; font-weight: 700; color: #c4a86a; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+.header h1 { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 800; color: #fffdf8; line-height: 1.2; }
+.header p { font-size: 13px; color: #c4b898; margin-top: 8px; }
+
+/* Disclaimer */
+.disclaimer {
+  background: #fff3e0; border-bottom: 2px solid #ffe0b2;
+  padding: 12px 24px; display: flex; align-items: center; gap: 10px;
+  font-size: 12px; color: #e65100; font-weight: 500; line-height: 1.45;
+}
+
+/* Tabs */
+.tabs { display: flex; padding: 16px 24px 0; gap: 8px; }
+.tab-btn {
+  flex: 1; padding: 12px 8px; border: 1.5px solid #e2ddd3; border-radius: 10px;
+  background: #fffdf8; color: #6b5e4a; font-size: 14px; font-weight: 700; line-height: 1.3;
+  transition: all 0.2s;
+}
+.tab-btn.active { background: #2c2416; color: #fffdf8; border-color: #2c2416; }
+.tab-btn small { display: block; font-size: 10px; font-weight: 500; margin-top: 2px; opacity: 0.7; }
+
+/* View toggle */
+.view-toggle {
+  display: flex; padding: 8px; gap: 4px; background: #eae5da;
+  margin: 12px 24px 0; border-radius: 10px;
+}
+.view-btn {
+  flex: 1; padding: 10px; border: none; border-radius: 8px; background: transparent;
+  color: #8a7d68; font-size: 13px; font-weight: 700; transition: all 0.2s;
+}
+.view-btn.active { background: #fffdf8; color: #2c2416; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+
+/* Content */
+.content { padding: 16px 24px 120px; }
+
+/* Stool card strip */
+.strip-header { font-size: 12px; font-weight: 700; color: #6b5e4a; margin-bottom: 6px; display: flex; justify-content: space-between; }
+.strip { display: flex; gap: 2px; border-radius: 10px; overflow: hidden; border: 1.5px solid #d4cec0; }
+.strip-cell {
+  flex: 1; text-align: center; padding: 14px 2px 12px; position: relative; transition: all 0.3s;
+}
+.strip-cell.matched { outline: 3px solid #1a1a1a; outline-offset: -3px; }
+.strip-num { font-size: 16px; font-weight: 800; text-shadow: 0 1px 3px rgba(255,255,255,0.8); }
+.strip-num.abn { color: #c62828; }
+.strip-num.norm { color: #2e7d32; }
+
+/* Upload area */
+.upload-area {
+  border: 2px dashed #c4b898; border-radius: 14px; padding: 44px 20px;
+  text-align: center; cursor: pointer; background: #fffdf8; transition: background 0.2s;
+}
+.upload-area:active { background: #f5f0e5; }
+
+/* Canvas container */
+.canvas-wrap {
+  position: relative; border-radius: 12px; overflow: hidden; border: 2px solid #d4cec0;
+}
+.canvas-wrap canvas { display: block; width: 100%; cursor: crosshair; touch-action: none; }
+.picker-ring {
+  position: absolute; width: 40px; height: 40px; border-radius: 50%;
+  border: 3px solid white; pointer-events: none;
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.5), 0 2px 10px rgba(0,0,0,0.4);
+  transform: translate(-20px, -20px);
+}
+.tap-hint {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.7); color: white; padding: 12px 20px; border-radius: 10px;
+  font-size: 14px; font-weight: 600; pointer-events: none; text-align: center;
+}
+.tap-hint small { font-size: 12px; opacity: 0.8; display: block; margin-top: 2px; }
+
+/* Action buttons */
+.actions { display: flex; gap: 8px; margin-top: 12px; }
+.btn-secondary {
+  flex: 1; padding: 11px; border: 1.5px solid #d4cec0; border-radius: 8px;
+  background: #fffdf8; font-size: 13px; font-weight: 600; color: #6b5e4a;
+}
+.btn-primary {
+  flex: 1; padding: 11px; border: 1.5px solid #2c2416; border-radius: 8px;
+  background: #2c2416; font-size: 13px; font-weight: 600; color: #fffdf8;
+}
+
+/* Result card */
+.result { margin-top: 16px; border-radius: 14px; overflow: hidden; border-width: 2px; border-style: solid; background: #fffdf8; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.result-header { padding: 16px 20px; display: flex; align-items: center; gap: 14px; }
+.result-swatch { width: 50px; height: 50px; border-radius: 10px; border: 2px solid rgba(0,0,0,0.15); flex-shrink: 0; }
+.result-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
+.result-name { font-size: 18px; font-weight: 800; color: #1a1a1a; font-family: 'Playfair Display', serif; }
+.result-body { padding: 16px 20px; }
+.result-desc { font-size: 14px; color: #3a3020; line-height: 1.65; margin-bottom: 14px; }
+
+/* Alert boxes */
+.alert-box { border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
+.alert-box .alert-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+}
+.alert-box p { font-size: 13px; line-height: 1.55; }
+
+/* Tips box */
+.tips-box {
+  margin-top: 16px; padding: 14px 16px; background: #fffdf8;
+  border-radius: 10px; border: 1px solid #e2ddd3;
+}
+.tips-box h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.tips-box p { font-size: 13px; color: #6b5e4a; line-height: 1.75; }
+
+/* Comparison banner */
+.compare-banner {
+  background: #fffdf8; border: 1.5px solid #e2ddd3; border-radius: 12px;
+  padding: 14px 16px; margin-bottom: 16px;
+}
+.compare-banner h3 { font-size: 13px; font-weight: 700; color: #2c2416; margin-bottom: 10px; }
+.compare-boxes { display: flex; gap: 8px; }
+.compare-box { flex: 1; border-radius: 8px; padding: 14px; text-align: center; }
+
+/* Reference cards */
+.ref-card {
+  border-radius: 14px; overflow: hidden; cursor: pointer;
+  border: 1.5px solid #e2ddd3; background: #fffdf8;
+  transition: all 0.25s; margin-bottom: 10px;
+}
+.ref-card.expanded { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.ref-card-inner { display: flex; align-items: stretch; }
+.ref-swatch {
+  width: 72px; min-height: 72px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2px;
+}
+.ref-content { flex: 1; padding: 12px 14px; }
+.ref-name { font-weight: 700; font-size: 14px; color: #2c2416; margin-bottom: 3px; }
+.ref-desc { font-size: 12px; color: #6b5e4a; line-height: 1.4; }
+.badge {
+  display: inline-block; padding: 3px 8px; border-radius: 20px;
+  font-size: 10px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+}
+.badge-urg { background: #fce4ec; color: #c62828; border: 1px solid #ef9a9a; }
+.badge-norm { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+
+/* Expanded detail */
+.ref-detail { margin-top: 12px; padding-top: 12px; border-top: 1px solid #ece7dc; }
+
+/* Tech detail */
+.tech-toggle { font-size: 12px; color: #8a7d68; cursor: pointer; font-weight: 600; padding: 6px 0; user-select: none; }
+.tech-detail {
+  margin-top: 6px; padding: 10px 12px; background: #f8f4ec; border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6b5e4a; line-height: 1.8;
+}
+
+/* Footer */
+.footer { padding: 20px 24px 32px; text-align: center; border-top: 1px solid #e2ddd3; }
+.footer p { font-size: 11px; color: #a89880; line-height: 1.7; }
+
+/* PWA install banner */
+.install-banner {
+  background: #2c2416; padding: 14px 24px; display: flex; align-items: center;
+  justify-content: space-between; gap: 12px; display: none;
+}
+.install-banner p { font-size: 13px; color: #c4b898; flex: 1; }
+.install-banner button {
+  padding: 8px 16px; border: 1.5px solid #c4a86a; border-radius: 8px;
+  background: transparent; color: #c4a86a; font-size: 12px; font-weight: 700;
+}
+.install-banner .close-install {
+  border: none; background: none; color: #8a7d68; font-size: 18px; padding: 0 4px;
+}
+
+/* Hidden */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="container" id="app">
+  <!-- Install banner -->
+  <div class="install-banner" id="installBanner">
+    <p>Add to your home screen for quick access</p>
+    <button onclick="installPWA()">Install</button>
+    <button class="close-install" onclick="dismissInstall()">×</button>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-tag">Clinical Reference Tool</div>
+    <h1>Paediatric Colour Guide</h1>
+    <p>Camera colour matching with stool colour card screening</p>
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="disclaimer">
+    <span style="font-size:18px">⚕</span>
+    <span>Clinical aid only. Screen colour varies by device and lighting. Always correlate with clinical findings and validated stool colour cards.</span>
+  </div>
+
+  <!-- Mode tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" id="tabStool" onclick="setMode('stool')">
+      💩 Stool<small>Biliary Atresia Card</small>
+    </button>
+    <button class="tab-btn" id="tabVomit" onclick="setMode('vomit')">
+      🤮 Vomit<small>Bilious vs Yellow</small>
+    </button>
+  </div>
+
+  <!-- View toggle -->
+  <div class="view-toggle">
+    <button class="view-btn active" id="viewCamera" onclick="setView('camera')">📷 Camera Match</button>
+    <button class="view-btn" id="viewRef" onclick="setView('reference')">📋 Reference Card</button>
+  </div>
+
+  <div class="content" id="contentArea"></div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div style="margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;color:#2c2416;font-family:'Playfair Display',serif;margin-bottom:4px">BigBevan Production</div>
+      <div style="font-size:11px;color:#a89880">Designed for NHS paediatric clinical use</div>
+    </div>
+    <div style="margin-bottom:14px;padding-top:14px;border-top:1px solid #e2ddd3">
+      <div style="font-size:10px;font-weight:700;color:#8a7d68;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">References</div>
+      <p style="font-size:10px;color:#a89880;line-height:1.7;text-align:left">
+        Franciscovich A, Vaidya D, Doyle J, et al. PoopMD, a Mobile Health Application, Accurately Identifies Infant Acholic Stools. <em>PLOS ONE</em>. 2015;10(7):e0132270.<br>
+        Shen Z, Zheng S, Dong R, et al. Saturation of stool colour in HSV colour model is a promising objective parameter for screening biliary atresia. <em>J Pediatr Surg</em>. 2016;51:2091-2094.<br>
+        Angelico R, Liccardo D, Paoletti M, et al. A novel mobile phone application for infant stool colour recognition. <em>J Med Screen</em>. 2021;28(3):230-237.<br>
+        Chen SM, Chang MH, Du JC, et al. Screening for biliary atresia by infant stool colour card in Taiwan. <em>Pediatrics</em>. 2006;117(4):1147-1154.
+      </p>
+    </div>
+    <p>
+      Screen colours are approximate. Use validated stool colour cards alongside this tool.<br>
+      Not a diagnostic device. Clinical correlation required.
+    </p>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const STOOL_CARDS = [
+  { id:"c1",n:1,name:"White / Chalky",hex:"#f0ece0",cat:"abnormal",
+    hsv:{hMin:0,hMax:60,sMin:0,sMax:15,vMin:80,vMax:100},
+    desc:"Completely acholic - no bile pigment reaching bowel.",
+    mgmt:"URGENT: Check conjugated bilirubin. Refer paediatric hepatology/surgery. USS liver. Consider HIDA scan. Kasai before 60 days.",tip:""},
+  { id:"c2",n:2,name:"Pale Grey / Clay",hex:"#d8ceb8",cat:"abnormal",
+    hsv:{hMin:20,hMax:55,sMin:3,sMax:22,vMin:68,vMax:94},
+    desc:"Very pale - minimal bile pigment, likely obstructive.",
+    mgmt:"URGENT: Conjugated bilirubin, hepatology referral. Do not delay.",tip:""},
+  { id:"c3",n:3,name:"Pale Caramel",hex:"#d4c89c",cat:"abnormal",
+    hsv:{hMin:35,hMax:58,sMin:10,sMax:32,vMin:62,vMax:90},
+    desc:"Borderline acholic - reduced bile. Most commonly missed colour.",
+    mgmt:"INVESTIGATE: Conjugated bilirubin and clinical review. If conjugated fraction elevated, treat as abnormal.",
+    tip:"This borderline colour is the one most often missed. If in any doubt - investigate."},
+  { id:"c4",n:4,name:"Light Yellow-Brown",hex:"#c8a84c",cat:"normal",
+    hsv:{hMin:35,hMax:55,sMin:30,sMax:72,vMin:52,vMax:85},
+    desc:"Normal - adequate bile pigment present.",mgmt:"Reassure. Normal stool pigmentation.",tip:""},
+  { id:"c5",n:5,name:"Mustard Yellow",hex:"#c4a030",cat:"normal",
+    hsv:{hMin:38,hMax:56,sMin:48,sMax:88,vMin:48,vMax:84},
+    desc:"Normal breastfed infant stool - good bile flow.",mgmt:"Reassure. Typical breastfed stool.",tip:""},
+  { id:"c6",n:6,name:"Brown",hex:"#8a6830",cat:"normal",
+    hsv:{hMin:22,hMax:50,sMin:38,sMax:82,vMin:28,vMax:62},
+    desc:"Normal formula-fed / older infant stool.",mgmt:"Reassure. Normal stool colour.",tip:""},
+  { id:"c7",n:7,name:"Dark Green-Brown",hex:"#4a6828",cat:"normal",
+    hsv:{hMin:55,hMax:145,sMin:28,sMax:82,vMin:18,vMax:56},
+    desc:"Normal - meconium transition, iron, or green vegetables.",mgmt:"Reassure. Green stools are normal.",tip:""},
+];
+const VOMIT_CARDS = [
+  { id:"v1",name:"Clear / White",hex:"#eeedea",cat:"normal",label:"Benign",
+    hsv:{hMin:0,hMax:60,sMin:0,sMax:12,vMin:84,vMax:100},
+    desc:"Gastric secretions / saliva. Common with viral gastroenteritis.",mgmt:"Assess hydration. Supportive care.",tip:""},
+  { id:"v2",name:"Yellow (NOT Bilious)",hex:"#e0be30",cat:"normal",label:"Benign",
+    hsv:{hMin:40,hMax:60,sMin:45,sMax:98,vMin:62,vMax:98},
+    desc:"Bile-tinged gastric contents from duodenal reflux. Parents frequently describe this as 'green' or 'bilious' - it is NOT.",
+    mgmt:"Reassure. NOT true bilious vomiting.",
+    tip:"Parents frequently call this 'bilious'. Compare with the green sample - true bilious vomiting is distinctly GREEN."},
+  { id:"v3",name:"Orange",hex:"#e08828",cat:"normal",label:"Benign",
+    hsv:{hMin:18,hMax:42,sMin:48,sMax:98,vMin:58,vMax:94},
+    desc:"Partially digested food, medications, or food colouring (carrots, squash).",mgmt:"Dietary history. Usually reassurance.",tip:""},
+  { id:"v4",name:"Green (TRUE Bilious)",hex:"#4a8a38",cat:"urgent",label:"RED FLAG",
+    hsv:{hMin:65,hMax:165,sMin:28,sMax:92,vMin:22,vMax:68},
+    desc:"True bilious vomiting - distinctly GREEN. In neonates, surgical emergency until proven otherwise (malrotation with volvulus).",
+    mgmt:"URGENT: Senior review. NPO. NG tube. Surgical referral. Upper GI contrast study.",
+    tip:"This is the colour that matters. Compare carefully with the yellow sample above."},
+  { id:"v5",name:"Red / Bloody",hex:"#c43030",cat:"urgent",label:"RED FLAG",
+    hsv:{hMin:340,hMax:20,sMin:38,sMax:98,vMin:28,vMax:88},
+    desc:"Haematemesis. Consider varices, Mallory-Weiss, peptic ulcer. In neonates, consider swallowed maternal blood (Apt test).",
+    mgmt:"URGENT: Haemodynamic assessment. IV access, FBC, coag, G&S. Consider OGD.",tip:""},
+  { id:"v6",name:"Coffee-Ground",hex:"#5c3a2a",cat:"urgent",label:"RED FLAG",
+    hsv:{hMin:8,hMax:38,sMin:22,sMax:68,vMin:10,vMax:42},
+    desc:"Altered blood - partially digested haemoglobin. Upper GI bleeding.",
+    mgmt:"URGENT: As per haematemesis. IV access. Senior review.",tip:""},
+];
+
+// ===== STATE =====
+let mode = 'stool';
+let view = 'camera';
+let capturedImage = null;
+let pickerPos = null;
+let analysisResult = null;
+let expandedCard = null;
+let showTech = false;
+let canvasEl = null;
+
+function getRefs() { return mode === 'stool' ? STOOL_CARDS : VOMIT_CARDS; }
+function isUrg(c) { return c.cat === 'abnormal' || c.cat === 'urgent'; }
+
+// ===== COLOUR ANALYSIS =====
+function rgb2hsv(r,g,b) {
+  r/=255; g/=255; b/=255;
+  const mx=Math.max(r,g,b), mn=Math.min(r,g,b), d=mx-mn;
+  let h=0;
+  if(d){
+    if(mx===r) h=((g-b)/d+(g<b?6:0))*60;
+    else if(mx===g) h=((b-r)/d+2)*60;
+    else h=((r-g)/d+4)*60;
+  }
+  return {h, s:mx?(d/mx)*100:0, v:mx*100};
+}
+
+function matchColour(hsv, refs) {
+  let best=null, bestS=Infinity;
+  for(const ref of refs){
+    const r=ref.hsv; let hD=0,sD=0,vD=0;
+    if(r.hMin>r.hMax){
+      if(!(hsv.h>=r.hMin||hsv.h<=r.hMax))
+        hD=Math.min(Math.abs(hsv.h-r.hMin),Math.abs(hsv.h-r.hMax+360)%360);
+    } else {
+      if(hsv.h<r.hMin) hD=r.hMin-hsv.h;
+      else if(hsv.h>r.hMax) hD=hsv.h-r.hMax;
+    }
+    if(hsv.s<r.sMin) sD=r.sMin-hsv.s;
+    else if(hsv.s>r.sMax) sD=hsv.s-r.sMax;
+    if(hsv.v<r.vMin) vD=r.vMin-hsv.v;
+    else if(hsv.v>r.vMax) vD=hsv.v-r.vMax;
+    const sc=hD*1.0+sD*2.5+vD*1.2;
+    if(sc<bestS){bestS=sc; best={...ref,score:sc};}
+  }
+  return {match:best, confidence:Math.max(0,100-bestS*2)};
+}
+
+function sampleArea(ctx,x,y,rad) {
+  const s=rad*2, sx=Math.max(0,Math.floor(x-rad)), sy=Math.max(0,Math.floor(y-rad));
+  const w=Math.min(s,ctx.canvas.width-sx), h=Math.min(s,ctx.canvas.height-sy);
+  if(w<=0||h<=0) return {r:128,g:128,b:128};
+  const d=ctx.getImageData(sx,sy,w,h).data;
+  let rS=0,gS=0,bS=0,c=0;
+  for(let i=0;i<d.length;i+=4){rS+=d[i];gS+=d[i+1];bS+=d[i+2];c++;}
+  return {r:Math.round(rS/c),g:Math.round(gS/c),b:Math.round(bS/c)};
+}
+
+// ===== RENDER =====
+function setMode(m) {
+  mode=m; expandedCard=null; analysisResult=null; pickerPos=null; capturedImage=null;
+  document.getElementById('tabStool').className = 'tab-btn' + (m==='stool'?' active':'');
+  document.getElementById('tabVomit').className = 'tab-btn' + (m==='vomit'?' active':'');
+  render();
+}
+function setView(v) {
+  view=v;
+  document.getElementById('viewCamera').className = 'view-btn' + (v==='camera'?' active':'');
+  document.getElementById('viewRef').className = 'view-btn' + (v==='reference'?' active':'');
+  render();
+}
+
+function render() {
+  const el = document.getElementById('contentArea');
+  if(view==='camera') renderCamera(el);
+  else renderReference(el);
+}
+
+function renderCamera(el) {
+  const refs = getRefs();
+  let html = '';
+
+  // Stool card strip
+  if(mode==='stool') {
+    html += renderStoolStrip();
+  }
+
+  // Vomit comparison (when no image)
+  if(mode==='vomit' && !capturedImage) {
+    html += `<div class="compare-banner">
+      <h3>⚡ Yellow ≠ Bilious</h3>
+      <div class="compare-boxes">
+        <div class="compare-box" style="background:#e0be30">
+          <div style="font-size:22px">✓</div>
+          <div style="font-size:13px;font-weight:700">Yellow</div>
+          <div style="font-size:11px;margin-top:4px">NOT bilious</div>
+        </div>
+        <div class="compare-box" style="background:#4a8a38">
+          <div style="font-size:22px">⚠</div>
+          <div style="font-size:13px;font-weight:700;color:#fff">Green</div>
+          <div style="font-size:11px;color:#d4f0c8;margin-top:4px">TRUE bilious</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  if(!capturedImage) {
+    // Upload area
+    html += `<div class="upload-area" onclick="document.getElementById('fileInput').click()">
+      <div style="font-size:44px;margin-bottom:12px">📷</div>
+      <div style="font-size:16px;font-weight:700;color:#2c2416;margin-bottom:6px">Take Photo or Upload Image</div>
+      <div style="font-size:13px;color:#8a7d68;line-height:1.5">
+        Photograph the ${mode==='stool'?'stool in the nappy':'vomit'}, then tap the area of interest to analyse.
+      </div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" capture="environment" onchange="handleFile(event)" style="display:none">
+    <div class="tips-box">
+      <h3>📌 Tips for Accurate Results</h3>
+      <p>
+        <strong>Lighting:</strong> Use natural daylight. Avoid flash and fluorescent light.<br>
+        <strong>Framing:</strong> Open nappy flat. Fill frame with central stool area.<br>
+        <strong>Sampling:</strong> Tap the most representative area. Avoid edges and shadows.<br>
+        <strong>Repeat:</strong> Tap multiple spots to confirm consistency.
+      </p>
+    </div>`;
+  } else {
+    // Canvas + picker
+    html += `<div class="canvas-wrap">
+      <canvas id="analysisCanvas"></canvas>
+      ${pickerPos ? `<div class="picker-ring" style="left:${pickerPos.x}px;top:${pickerPos.y}px;${analysisResult?`background:rgb(${analysisResult.col.r},${analysisResult.col.g},${analysisResult.col.b})`:''}" id="pickerRing"></div>` : ''}
+      ${!pickerPos ? `<div class="tap-hint">Tap the ${mode==='stool'?'stool':'vomit'}<small>to analyse colour</small></div>` : ''}
+    </div>
+    <div class="actions">
+      <button class="btn-secondary" onclick="resetCamera()">↺ New Photo</button>
+      <button class="btn-primary" onclick="document.getElementById('fileInput2').click()">📷 Retake</button>
+    </div>
+    <input type="file" id="fileInput2" accept="image/*" capture="environment" onchange="handleFile(event)" style="display:none">`;
+
+    // Result
+    if(analysisResult) {
+      html += renderResult(analysisResult);
+    }
+  }
+
+  el.innerHTML = html;
+
+  // Draw image to canvas if present
+  if(capturedImage) {
+    requestAnimationFrame(() => {
+      const canvas = document.getElementById('analysisCanvas');
+      if(!canvas) return;
+      canvasEl = canvas;
+      const img = new Image();
+      img.onload = () => {
+        const maxW = el.clientWidth - 4; // account for border
+        const maxH = 380;
+        const sc = Math.min(maxW/img.width, maxH/img.height, 1);
+        canvas.width = img.width*sc;
+        canvas.height = img.height*sc;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.onclick = handleCanvasTap;
+        canvas.ontouchstart = handleCanvasTap;
+      };
+      img.src = capturedImage;
+    });
+  }
+}
+
+function renderReference(el) {
+  const refs = getRefs();
+  let html = '';
+
+  if(mode==='stool') html += renderStoolStrip();
+
+  if(mode==='vomit') {
+    html += `<div class="compare-banner">
+      <h3>⚡ The Critical Distinction</h3>
+      <div class="compare-boxes">
+        <div class="compare-box" style="background:#e0be30">
+          <div style="font-size:22px">✓</div>
+          <div style="font-size:13px;font-weight:700">Yellow</div>
+          <div style="font-size:11px;color:#4a3f20;margin-top:4px">Benign - NOT bilious</div>
+        </div>
+        <div class="compare-box" style="background:#4a8a38">
+          <div style="font-size:22px">⚠</div>
+          <div style="font-size:13px;font-weight:700;color:#fff">Green</div>
+          <div style="font-size:11px;color:#d4f0c8;margin-top:4px">TRUE bilious - emergency</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  for(const item of refs) {
+    const urg = isUrg(item);
+    const isExp = expandedCard === item.id;
+    const bc = isExp ? (urg?'#ef9a9a':'#a5d6a7') : '#e2ddd3';
+    html += `<div class="ref-card${isExp?' expanded':''}" style="border-color:${bc}" onclick="toggleCard('${item.id}')">
+      <div class="ref-card-inner">
+        <div class="ref-swatch" style="background:${item.hex};border-right:3px solid ${urg?'#c6282840':'#2e7d3230'}">
+          ${item.n ? `<span class="strip-num ${urg?'abn':'norm'}" style="font-size:18px">${item.n}</span>` : ''}
+          ${urg ? '<span style="font-size:16px">⚠</span>' : ''}
+        </div>
+        <div class="ref-content">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div>
+              <div class="ref-name">${item.name}</div>
+              <div class="ref-desc">${item.desc}</div>
+            </div>
+            <span class="badge ${urg?'badge-urg':'badge-norm'}">${urg?(item.label||'ABNORMAL'):(item.label||'NORMAL')}</span>
+          </div>
+          ${isExp ? `<div class="ref-detail">
+            ${item.tip ? `<div class="alert-box" style="background:#fff3e0;border:1px solid #ffe0b2">
+              <p style="font-size:12px;color:#e65100;font-weight:600">${item.tip}</p>
+            </div>` : ''}
+            <div class="alert-box" style="background:${urg?'#fce4ec':'#e8f5e9'};border:1px solid ${urg?'#f8bbd0':'#c8e6c9'}">
+              <div class="alert-title" style="color:${urg?'#c62828':'#2e7d32'}">Management</div>
+              <p style="font-size:12px;color:${urg?'#b71c1c':'#1b5e20'}">${item.mgmt}</p>
+            </div>
+          </div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+function renderStoolStrip() {
+  const matchId = analysisResult?.match?.id || expandedCard;
+  let h = `<div style="margin-bottom:16px">
+    <div class="strip-header">
+      <span>Stool Colour Card</span>
+      <span><span style="color:#c62828">1-3 Abnormal</span> | <span style="color:#2e7d32">4-7 Normal</span></span>
+    </div>
+    <div class="strip">`;
+  for(const c of STOOL_CARDS) {
+    const matched = matchId===c.id;
+    h += `<div class="strip-cell${matched?' matched':''}" style="background:${c.hex}">
+      <div class="strip-num ${c.cat==='abnormal'?'abn':'norm'}">${c.n}</div>
+      ${matched?'<div style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);font-size:10px">▲</div>':''}
+    </div>`;
+  }
+  h += '</div></div>';
+  return h;
+}
+
+function renderResult(res) {
+  const m = res.match;
+  const urg = isUrg(m);
+  const bc = urg?'#c62828':'#2e7d32';
+  const bg = urg?'#fce4ec':'#e8f5e9';
+  const tc = urg?'#b71c1c':'#1b5e20';
+
+  let h = `<div class="result" style="border-color:${bc}">
+    <div class="result-header" style="background:${bg};border-bottom:1px solid ${bc}40">
+      <div class="result-swatch" style="background:rgb(${res.col.r},${res.col.g},${res.col.b})"></div>
+      <div>
+        <div class="result-label" style="color:${tc}">
+          ${urg ? (mode==='stool'?'⚠ ABNORMAL - INVESTIGATE':'⚠ RED FLAG') : '✓ NORMAL'}
+        </div>
+        <div class="result-name">
+          ${m.name}${m.n?`<span style="font-size:14px;font-weight:600;color:#6b5e4a;margin-left:8px">Card ${m.n}</span>`:''}
+        </div>
+      </div>
+    </div>
+    <div class="result-body">
+      <p class="result-desc">${m.desc}</p>`;
+
+  if(m.tip) {
+    h += `<div class="alert-box" style="background:#fff3e0;border:1px solid #ffe0b2">
+      <div class="alert-title" style="color:#e65100">Key Point</div>
+      <p style="color:#bf360c">${m.tip}</p>
+    </div>`;
+  }
+
+  h += `<div class="alert-box" style="background:${urg?'#fce4ec':'#f1f8e9'};border:1px solid ${urg?'#f8bbd0':'#c8e6c9'}">
+    <div class="alert-title" style="color:${urg?'#c62828':'#33691e'}">Management</div>
+    <p style="color:${urg?'#b71c1c':'#1b5e20'}">${m.mgmt}</p>
+  </div>`;
+
+  if(mode==='stool' && urg) {
+    h += `<div class="alert-box" style="background:#fce4ec;border:1px solid #ef9a9a">
+      <div class="alert-title" style="color:#c62828">Biliary Atresia Alert</div>
+      <p style="color:#b71c1c">Check conjugated bilirubin urgently. If elevated with pale stools, refer to paediatric hepatology/surgery.
+      Kasai portoenterostomy outcomes are time-dependent. Aim for surgery before 60 days of life.</p>
+    </div>`;
+  }
+
+  h += `<div class="tech-toggle" onclick="event.stopPropagation();toggleTech()">
+    ${showTech?'▾':'▸'} Colour analysis detail
+  </div>`;
+
+  if(showTech) {
+    h += `<div class="tech-detail">
+      <div>Sampled RGB: (${res.col.r}, ${res.col.g}, ${res.col.b})</div>
+      <div>HSV: H=${res.hsv.h.toFixed(1)}° S=${res.hsv.s.toFixed(1)}% V=${res.hsv.v.toFixed(1)}%</div>
+      <div>Saturation: ${res.hsv.s<30?'LOW - acholic range ⚠':'ADEQUATE - pigmented ✓'}</div>
+      <div>Closest match: ${m.name} (score: ${m.score.toFixed(1)})</div>
+      <div>Confidence: ${res.confidence.toFixed(0)}%</div>
+      <div style="margin-top:6px;font-size:10px;font-style:italic">
+        HSV method per Franciscovich et al. (PLOS ONE 2015) and Shen et al. (J Pediatr Surg 2016)
+      </div>
+    </div>`;
+  }
+
+  h += '</div></div>';
+  return h;
+}
+
+// ===== EVENT HANDLERS =====
+function handleFile(e) {
+  const f = e.target.files?.[0];
+  if(!f) return;
+  const rd = new FileReader();
+  rd.onload = (ev) => { capturedImage=ev.target.result; pickerPos=null; analysisResult=null; showTech=false; render(); };
+  rd.readAsDataURL(f);
+}
+
+function handleCanvasTap(e) {
+  e.preventDefault();
+  const canvas = document.getElementById('analysisCanvas');
+  if(!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const clientX = e.clientX ?? e.touches?.[0]?.clientX;
+  const clientY = e.clientY ?? e.touches?.[0]?.clientY;
+  const x = clientX - rect.left;
+  const y = clientY - rect.top;
+  const sx = canvas.width/rect.width, sy = canvas.height/rect.height;
+
+  pickerPos = {x, y};
+  const ctx = canvas.getContext('2d');
+  const rad = Math.max(6, Math.min(canvas.width,canvas.height)*0.025);
+  const col = sampleArea(ctx, x*sx, y*sy, rad);
+  const hsv = rgb2hsv(col.r, col.g, col.b);
+  const res = matchColour(hsv, getRefs());
+  analysisResult = {...res, col, hsv};
+  showTech = false;
+  render();
+}
+
+function resetCamera() {
+  capturedImage=null; pickerPos=null; analysisResult=null; showTech=false; render();
+}
+
+function toggleCard(id) {
+  expandedCard = expandedCard===id ? null : id;
+  render();
+}
+
+function toggleTech() {
+  showTech = !showTech;
+  render();
+}
+
+// ===== PWA INSTALL =====
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBanner').style.display = 'flex';
+});
+
+function installPWA() {
+  if(deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => { deferredPrompt=null; dismissInstall(); });
+  }
+}
+function dismissInstall() {
+  document.getElementById('installBanner').style.display = 'none';
+}
+
+// ===== SERVICE WORKER =====
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+// ===== INIT =====
+render();
+</script>
+</body>
+</html>
