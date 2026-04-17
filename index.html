@@ -437,7 +437,7 @@ function renderCamera(el) {
         Photograph the ${mode==='stool'?'stool in the nappy':'vomit'}, then tap the area of interest to analyse.
       </div>
     </div>
-    <input type="file" id="fileInput" accept="image/*" capture="environment" onchange="handleFile(event)" style="display:none">
+    <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)" style="display:none">
     <div class="tips-box">
       <h3>📌 Tips for Accurate Results</h3>
       <p>
@@ -458,7 +458,7 @@ function renderCamera(el) {
       <button class="btn-secondary" onclick="resetCamera()">↺ New Photo</button>
       <button class="btn-primary" onclick="document.getElementById('fileInput2').click()">📷 Retake</button>
     </div>
-    <input type="file" id="fileInput2" accept="image/*" capture="environment" onchange="handleFile(event)" style="display:none">`;
+    <input type="file" id="fileInput2" accept="image/*" onchange="handleFile(event)" style="display:none">`;
 
     // Result
     if(analysisResult) {
