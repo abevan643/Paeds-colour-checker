@@ -430,14 +430,24 @@ function renderCamera(el) {
 
   if(!capturedImage) {
     // Upload area
-    html += `<div class="upload-area" onclick="document.getElementById('fileInput').click()">
-      <div style="font-size:44px;margin-bottom:12px">📷</div>
-      <div style="font-size:16px;font-weight:700;color:#2c2416;margin-bottom:6px">Take Photo or Upload Image</div>
-      <div style="font-size:13px;color:#8a7d68;line-height:1.5">
-        Photograph the ${mode==='stool'?'stool in the nappy':'vomit'}, then tap the area of interest to analyse.
+    html += `<div style="display:flex;flex-direction:column;gap:10px">
+      <div class="upload-area" onclick="document.getElementById('fileInputCamera').click()">
+        <div style="font-size:44px;margin-bottom:12px">📷</div>
+        <div style="font-size:16px;font-weight:700;color:#2c2416;margin-bottom:6px">Take a Photo Now</div>
+        <div style="font-size:13px;color:#8a7d68;line-height:1.5">
+          Opens your camera to photograph the ${mode==='stool'?'stool in the nappy':'vomit'} directly.
+        </div>
+      </div>
+      <div class="upload-area" onclick="document.getElementById('fileInputLibrary').click()">
+        <div style="font-size:44px;margin-bottom:12px">🖼</div>
+        <div style="font-size:16px;font-weight:700;color:#2c2416;margin-bottom:6px">Choose from Photo Library</div>
+        <div style="font-size:13px;color:#8a7d68;line-height:1.5">
+          Select a photo you have already taken from your camera roll.
+        </div>
       </div>
     </div>
-    <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)" style="display:none">
+    <input type="file" id="fileInputCamera" accept="image/*" capture="environment" onchange="handleFile(event)" style="display:none">
+    <input type="file" id="fileInputLibrary" accept="image/*" onchange="handleFile(event)" style="display:none">
     <div class="tips-box">
       <h3>📌 Tips for Accurate Results</h3>
       <p>
@@ -456,9 +466,11 @@ function renderCamera(el) {
     </div>
     <div class="actions">
       <button class="btn-secondary" onclick="resetCamera()">↺ New Photo</button>
-      <button class="btn-primary" onclick="document.getElementById('fileInput2').click()">📷 Retake</button>
+      <button class="btn-primary" onclick="document.getElementById('retakeCamera').click()">📷 Retake</button>
+      <button class="btn-primary" onclick="document.getElementById('retakeLibrary').click()">🖼 Library</button>
     </div>
-    <input type="file" id="fileInput2" accept="image/*" onchange="handleFile(event)" style="display:none">`;
+    <input type="file" id="retakeCamera" accept="image/*" capture="environment" onchange="handleFile(event)" style="display:none">
+    <input type="file" id="retakeLibrary" accept="image/*" onchange="handleFile(event)" style="display:none">`;
 
     // Result
     if(analysisResult) {
