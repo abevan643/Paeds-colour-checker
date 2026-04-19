@@ -400,25 +400,6 @@ function renderCamera(el) {
     html += renderStoolStrip();
   }
 
-  // Vomit comparison (when no image)
-  if(mode==='vomit' && !capturedImage) {
-    html += `<div class="compare-banner">
-      <h3>⚡ Yellow ≠ Bilious</h3>
-      <div class="compare-boxes">
-        <div class="compare-box" style="background:#e0be30">
-          <div style="font-size:22px">✓</div>
-          <div style="font-size:13px;font-weight:700">Yellow</div>
-          <div style="font-size:11px;margin-top:4px">NOT bilious</div>
-        </div>
-        <div class="compare-box" style="background:#4a8a38">
-          <div style="font-size:22px">⚠</div>
-          <div style="font-size:13px;font-weight:700;color:#fff">Green</div>
-          <div style="font-size:11px;color:#d4f0c8;margin-top:4px">TRUE bilious</div>
-        </div>
-      </div>
-    </div>`;
-  }
-
   if(!capturedImage) {
     // Upload area
     html += `<div style="display:flex;flex-direction:column;gap:10px">
@@ -498,24 +479,6 @@ function renderReference(el) {
   let html = '';
 
   if(mode==='stool') html += renderStoolStrip();
-
-  if(mode==='vomit') {
-    html += `<div class="compare-banner">
-      <h3>⚡ The Critical Distinction</h3>
-      <div class="compare-boxes">
-        <div class="compare-box" style="background:#e0be30">
-          <div style="font-size:22px">✓</div>
-          <div style="font-size:13px;font-weight:700">Yellow</div>
-          <div style="font-size:11px;color:#4a3f20;margin-top:4px">Benign - NOT bilious</div>
-        </div>
-        <div class="compare-box" style="background:#4a8a38">
-          <div style="font-size:22px">⚠</div>
-          <div style="font-size:13px;font-weight:700;color:#fff">Green</div>
-          <div style="font-size:11px;color:#d4f0c8;margin-top:4px">TRUE bilious - emergency</div>
-        </div>
-      </div>
-    </div>`;
-  }
 
   for(const item of refs) {
     const urg = isUrg(item);
