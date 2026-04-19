@@ -657,9 +657,14 @@ function dismissInstall() {
   document.getElementById('installBanner').style.display = 'none';
 }
 
-// ===== SERVICE WORKER =====
+// ===== CLEAR OLD SERVICE WORKER AND CACHES =====
 if('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    for(let registration of registrations) { registration.unregister(); }
+  });
+  caches.keys().then(function(names) {
+    for(let name of names) { caches.delete(name); }
+  });
 }
 
 // ===== INIT =====
