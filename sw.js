@@ -1,4 +1,4 @@
-const CACHE_NAME = 'paed-colour-v2';
+const CACHE_NAME = 'paed-colour-v3';
 const ASSETS = [
   './',
   './index.html',
