@@ -113,6 +113,8 @@ const T = {
     satLow: "ISEL - ystod acholig ⚠", satOk: "DIGONOL - pigmentog ✓",
     footerLine1: "Mae lliwiau sgrin yn fras. Defnyddiwch gardiau lliw carthion dilys ochr yn ochr.",
     footerLine2: "Nid dyfais ddiagnostig. Mae angen cydberthynas glinigol.",
+    stoolRefNote: "Mae'r lliwiau isod yn seiliedig ar gerdyn lliw carthion babanod Taiwan (Chen et al., Pediatrics 2006), y safon ryngwladol ar gyfer sgrinio atresia biliari.",
+    vomitRefNote: "Mae'r lliwiau isod yn seiliedig ar Walker et al. (BMJ 2006).",
     references: "Cyfeiriadau",
     ABNORMAL: "ANNORMAL", NORMAL: "NORMAL",
   },
@@ -138,6 +140,8 @@ const T = {
     satLow: "LOW - acholic range ⚠", satOk: "ADEQUATE - pigmented ✓",
     footerLine1: "Screen colours are approximate. Use validated stool colour cards alongside this tool.",
     footerLine2: "Not a diagnostic device. Clinical correlation required.",
+    stoolRefNote: "The colours below are based on the Taiwan infant stool colour card (Chen et al., Pediatrics 2006), the international standard for biliary atresia screening.",
+    vomitRefNote: "The colours below are based on Walker et al. (BMJ 2006).",
     references: "References",
     ABNORMAL: "ABNORMAL", NORMAL: "NORMAL",
   }
@@ -349,6 +353,8 @@ function renderCamera(el) {
 
 function renderReference(el) {
   const refs=getRefs();let html='';
+  const refNote = mode==='stool' ? t('stoolRefNote') : t('vomitRefNote');
+  html+=`<div style="background:#fffdf8;border:1px solid #e2ddd3;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#6b5e4a;line-height:1.55;font-style:italic">${refNote}</div>`;
   if(mode==='stool') html+=renderStoolStrip();
   for(const item of refs){
     const urg=isUrg(item),isExp=expandedCard===item.id;
