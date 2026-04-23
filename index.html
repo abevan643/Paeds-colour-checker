@@ -572,7 +572,8 @@ function drawBiliChart() {
   }
 
   // Determine axis range
-  const maxHours = 168;
+  const maxDataHours = biliReadings.length > 0 ? Math.max(...biliReadings.map(r => r.ageHours || 0)) : 0;
+  const maxHours = Math.max(96, Math.ceil(maxDataHours / 24) * 24);
   const allExchange = thresholds.exchange.map(p => fromUmol(p[1]));
   const maxY = Math.ceil(Math.max(...allExchange) * 1.1 / 50) * 50;
   const minY = 0;
@@ -580,10 +581,16 @@ function drawBiliChart() {
   function xPx(h) { return pad.left + (h / maxHours) * cw; }
   function yPx(v) { return pad.top + ch - ((v - minY) / (maxY - minY)) * ch; }
 
+  // Helper to get extended points
+  function extFill(points) {
+    const last = points[points.length-1];
+    return last[0] >= maxHours ? points : [...points, [maxHours, last[1]]];
+  }
+
   // Background zones
   // Exchange zone (red tint)
   ctx.beginPath();
-  thresholds.exchange.forEach(([h, v], i) => {
+  extFill(thresholds.exchange).forEach(([h, v], i) => {
     const x = xPx(h), y = yPx(fromUmol(v));
     i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
   });
@@ -595,12 +602,11 @@ function drawBiliChart() {
 
   // Photo zone (amber tint) - between photo and exchange lines
   ctx.beginPath();
-  thresholds.photo.forEach(([h, v], i) => {
+  extFill(thresholds.photo).forEach(([h, v], i) => {
     const x = xPx(h), y = yPx(fromUmol(v));
     i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
   });
-  // trace back along exchange line
-  [...thresholds.exchange].reverse().forEach(([h, v]) => {
+  [...extFill(thresholds.exchange)].reverse().forEach(([h, v]) => {
     ctx.lineTo(xPx(h), yPx(fromUmol(v)));
   });
   ctx.closePath();
@@ -617,7 +623,8 @@ function drawBiliChart() {
     ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cw, y); ctx.stroke();
   }
   // vertical
-  for (let h = 0; h <= maxHours; h += 24) {
+  const gridStep = maxHours <= 96 ? 12 : 24;
+  for (let h = 0; h <= maxHours; h += gridStep) {
     const x = xPx(h);
     ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, pad.top + ch); ctx.stroke();
   }
@@ -636,16 +643,23 @@ function drawBiliChart() {
     ctx.setLineDash([]);
   }
 
-  drawThreshLine(thresholds.photo, '#e65100', [6, 3]);
-  drawThreshLine(thresholds.exchange, '#c62828', []);
+  // Extend threshold data to maxHours by appending flat plateau point if needed
+  function extendToMax(points) {
+    if (points[points.length-1][0] >= maxHours) return points;
+    const last = points[points.length-1];
+    return [...points, [maxHours, last[1]]];
+  }
+  drawThreshLine(extendToMax(thresholds.photo), '#e65100', [6, 3]);
+  drawThreshLine(extendToMax(thresholds.exchange), '#c62828', []);
 
   // Axes labels
   ctx.fillStyle = '#8a7d68';
   ctx.font = '10px DM Sans, sans-serif';
   ctx.textAlign = 'center';
-  // x axis
-  for (let h = 0; h <= maxHours; h += 24) {
-    ctx.fillText(h, xPx(h), H - 10);
+  // x axis - every 24h
+  const xStep = maxHours <= 96 ? 24 : maxHours <= 192 ? 24 : 48;
+  for (let h = 0; h <= maxHours; h += xStep) {
+    ctx.fillText(h + 'h', xPx(h), H - 10);
   }
   ctx.fillText(t('biliAgeHours'), pad.left + cw / 2, H - 1);
 
@@ -664,7 +678,7 @@ function drawBiliChart() {
 
   // Plot readings
   if (biliReadings.length > 0) {
-    const validReadings = biliReadings.filter(r => r.ageHours !== null && r.ageHours >= 0 && r.ageHours <= maxHours * 1.1);
+    const validReadings = biliReadings.filter(r => r.ageHours !== null && r.ageHours >= 0);
 
     // Line connecting readings
     if (validReadings.length > 1) {
@@ -1170,7 +1184,16 @@ function addBiliReading() {
 
   const umolLevel = toUmol(levelRaw);
   const ageHours = calcAgeHours(date, time);
-  const zone = (ageHours !== null) ? getBiliZone(ageHours, umolLevel) : 'below';
+
+  if (ageHours === null) {
+    const msg = lang === 'cy'
+      ? 'Rhowch ddyddiad a amser geni i blotio ar y graff.'
+      : 'Please enter date and time of birth so the reading can be plotted on the chart.';
+    alert(msg);
+    return;
+  }
+
+  const zone = getBiliZone(ageHours, umolLevel);
 
   biliReadings.push({ date, time, umolLevel, ageHours, zone });
   biliReadings.sort((a, b) => (a.ageHours || 0) - (b.ageHours || 0));
