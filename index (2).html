@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PaedColour">
+<meta name="theme-color" content="#2c2416">
+<meta name="description" content="Paediatric stool and vomit colour identification tool, and neonatal bilirubin plotting against NICE CG98 thresholds.">
+<title>Paediatric Clinical Tools</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;background:#f8f4ec;color:#2c2416;-webkit-font-smoothing:antialiased;overscroll-behavior:none;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.container{max-width:540px;margin:0 auto;min-height:100vh;min-height:100dvh}
+
+/* ===== LANGUAGE SPLASH ===== */
+.lang-splash{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#2c2416,#4a3520);padding:40px 24px;text-align:center}
+.lang-splash h1{font-family:'Playfair Display',serif;font-size:26px;font-weight:800;color:#fffdf8;margin-bottom:8px}
+.lang-splash p{font-size:13px;color:#c4b898;margin-bottom:40px}
+.lang-btn{display:flex;align-items:center;justify-content:center;gap:14px;width:100%;max-width:320px;padding:18px 24px;border:2px solid #c4a86a;border-radius:14px;background:rgba(255,255,255,0.05);color:#fffdf8;font-size:18px;font-weight:700;margin-bottom:14px;transition:all 0.2s}
+.lang-btn:active{background:rgba(255,255,255,0.12);transform:scale(0.98)}
+.lang-flag{font-size:32px;line-height:1}
+
+/* ===== HOME MENU ===== */
+.home-screen{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;background:#f8f4ec}
+.home-header{background:linear-gradient(135deg,#2c2416,#4a3520);padding:36px 24px 32px;position:relative;overflow:hidden}
+.home-header::after{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.03)}
+.home-header h1{font-family:'Playfair Display',serif;font-size:24px;font-weight:800;color:#fffdf8;line-height:1.2;margin-bottom:4px}
+.home-header p{font-size:13px;color:#c4b898}
+.lang-toggle-wrap{display:flex;justify-content:flex-end;margin-bottom:16px}
+.lang-toggle{display:flex;gap:0;border:1.5px solid #c4a86a;border-radius:8px;overflow:hidden}
+.lang-toggle button{padding:6px 14px;border:none;background:transparent;color:#c4b898;font-size:12px;font-weight:700;transition:all 0.2s}
+.lang-toggle button.active{background:#c4a86a;color:#2c2416}
+.home-cards{padding:24px 20px 40px;display:flex;flex-direction:column;gap:14px;flex:1}
+.tool-card{display:flex;align-items:center;gap:18px;padding:22px 20px;border-radius:16px;border:1.5px solid #e2ddd3;background:#fffdf8;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.04)}
+.tool-card:active{transform:scale(0.98);box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.tool-card-icon{font-size:40px;line-height:1;flex-shrink:0}
+.tool-card-text{flex:1}
+.tool-card-title{font-size:17px;font-weight:800;color:#2c2416;margin-bottom:3px;font-family:'Playfair Display',serif}
+.tool-card-desc{font-size:12px;color:#8a7d68;line-height:1.5}
+.tool-card-arrow{font-size:18px;color:#c4b898;flex-shrink:0}
+.tool-card.bili{border-color:#f59e0b40;background:linear-gradient(135deg,#fffdf8,#fffbf0)}
+.tool-card.stool{border-color:#92400e40;background:linear-gradient(135deg,#fffdf8,#fdf8f0)}
+.tool-card.vomit{border-color:#15803d40;background:linear-gradient(135deg,#fffdf8,#f0fdf4)}
+.home-footer{padding:16px 24px 28px;text-align:center;border-top:1px solid #e2ddd3}
+.home-footer p{font-size:10px;color:#a89880;line-height:1.7}
+
+/* ===== TOOL SCREENS ===== */
+.tool-screen{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+.header{background:linear-gradient(135deg,#2c2416,#4a3520);padding:28px 24px 24px;position:relative;overflow:hidden}
+.header::after{content:'';position:absolute;top:-30px;right:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,0.03)}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.header h1{font-family:'Playfair Display',serif;font-size:20px;font-weight:800;color:#fffdf8;line-height:1.2}
+.back-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1.5px solid rgba(196,168,106,0.5);border-radius:8px;background:rgba(255,255,255,0.06);color:#c4b898;font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.back-btn:active{background:rgba(255,255,255,0.12)}
+
+/* ===== STOOL/VOMIT TOOL ===== */
+.view-toggle{display:flex;padding:8px;gap:4px;background:#eae5da;margin:12px 24px 0;border-radius:10px}
+.view-btn{flex:1;padding:10px;border:none;border-radius:8px;background:transparent;color:#8a7d68;font-size:13px;font-weight:700;transition:all 0.2s}
+.view-btn.active{background:#fffdf8;color:#2c2416;box-shadow:0 1px 4px rgba(0,0,0,0.1)}
+.content{padding:16px 24px 120px}
+.strip-header{font-size:12px;font-weight:700;color:#6b5e4a;margin-bottom:6px;display:flex;justify-content:space-between}
+.strip{display:flex;gap:2px;border-radius:10px;overflow:hidden;border:1.5px solid #d4cec0}
+.strip-cell{flex:1;text-align:center;padding:14px 2px 12px;position:relative;transition:all 0.3s}
+.strip-cell.matched{outline:3px solid #1a1a1a;outline-offset:-3px}
+.strip-num{font-size:16px;font-weight:800;text-shadow:0 1px 3px rgba(255,255,255,0.8)}
+.strip-num.abn{color:#c62828}.strip-num.norm{color:#2e7d32}
+.upload-area{border:2px dashed #c4b898;border-radius:14px;padding:44px 20px;text-align:center;cursor:pointer;background:#fffdf8;transition:background 0.2s}
+.upload-area:active{background:#f5f0e5}
+.canvas-wrap{position:relative;border-radius:12px;overflow:hidden;border:2px solid #d4cec0}
+.canvas-wrap canvas{display:block;width:100%;cursor:crosshair;touch-action:none}
+.picker-ring{position:absolute;width:40px;height:40px;border-radius:50%;border:3px solid white;pointer-events:none;box-shadow:0 0 0 2px rgba(0,0,0,0.5),0 2px 10px rgba(0,0,0,0.4);transform:translate(-20px,-20px)}
+.tap-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.7);color:white;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;pointer-events:none;text-align:center}
+.tap-hint small{font-size:12px;opacity:0.8;display:block;margin-top:2px}
+.actions{display:flex;gap:8px;margin-top:12px}
+.btn-secondary{flex:1;padding:11px;border:1.5px solid #d4cec0;border-radius:8px;background:#fffdf8;font-size:13px;font-weight:600;color:#6b5e4a}
+.btn-primary{flex:1;padding:11px;border:1.5px solid #2c2416;border-radius:8px;background:#2c2416;font-size:13px;font-weight:600;color:#fffdf8}
+.result{margin-top:16px;border-radius:14px;overflow:hidden;border-width:2px;border-style:solid;background:#fffdf8;animation:fadeIn 0.4s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.result-header{padding:16px 20px;display:flex;align-items:center;gap:14px}
+.result-swatch{width:50px;height:50px;border-radius:10px;border:2px solid rgba(0,0,0,0.15);flex-shrink:0}
+.result-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}
+.result-name{font-size:18px;font-weight:800;color:#1a1a1a;font-family:'Playfair Display',serif}
+.result-body{padding:16px 20px}
+.result-desc{font-size:14px;color:#3a3020;line-height:1.65;margin-bottom:14px}
+.alert-box{border-radius:8px;padding:12px 14px;margin-bottom:14px}
+.alert-box .alert-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.alert-box p{font-size:13px;line-height:1.55}
+.tips-box{margin-top:16px;padding:14px 16px;background:#fffdf8;border-radius:10px;border:1px solid #e2ddd3}
+.tips-box h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px}
+.tips-box p{font-size:13px;color:#6b5e4a;line-height:1.75}
+.ref-card{border-radius:14px;overflow:hidden;cursor:pointer;border:1.5px solid #e2ddd3;background:#fffdf8;transition:all 0.25s;margin-bottom:10px}
+.ref-card.expanded{box-shadow:0 4px 16px rgba(0,0,0,0.06)}
+.ref-card-inner{display:flex;align-items:stretch}
+.ref-swatch{width:72px;min-height:72px;flex-shrink:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px}
+.ref-content{flex:1;padding:12px 14px}
+.ref-name{font-weight:700;font-size:14px;color:#2c2416;margin-bottom:3px}
+.ref-desc{font-size:12px;color:#6b5e4a;line-height:1.4}
+.badge{display:inline-block;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.badge-urg{background:#fce4ec;color:#c62828;border:1px solid #ef9a9a}
+.badge-norm{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}
+.ref-detail{margin-top:12px;padding-top:12px;border-top:1px solid #ece7dc}
+.tech-toggle{font-size:12px;color:#8a7d68;cursor:pointer;font-weight:600;padding:6px 0;user-select:none}
+.tech-detail{margin-top:6px;padding:10px 12px;background:#f8f4ec;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#6b5e4a;line-height:1.8}
+.footer{padding:20px 24px 32px;text-align:center;border-top:1px solid #e2ddd3}
+.footer p{font-size:11px;color:#a89880;line-height:1.7}
+.install-banner{background:#2c2416;padding:14px 24px;align-items:center;justify-content:space-between;gap:12px;display:none}
+.install-banner p{font-size:13px;color:#c4b898;flex:1}
+.install-banner button{padding:8px 16px;border:1.5px solid #c4a86a;border-radius:8px;background:transparent;color:#c4a86a;font-size:12px;font-weight:700}
+.install-banner .close-install{border:none;background:none;color:#8a7d68;font-size:18px;padding:0 4px}
+
+/* ===== BILIRUBIN TOOL ===== */
+.bili-content{padding:16px 20px 80px}
+.bili-section{background:#fffdf8;border:1.5px solid #e2ddd3;border-radius:14px;padding:18px;margin-bottom:14px}
+.bili-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#8a7d68;margin-bottom:14px}
+.form-row{display:flex;gap:10px;margin-bottom:12px}
+.form-group{flex:1;display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:11px;font-weight:700;color:#6b5e4a;text-transform:uppercase;letter-spacing:0.5px}
+.form-group input,.form-group select{padding:10px 12px;border:1.5px solid #d4cec0;border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;color:#2c2416;background:#fffdf8;-webkit-appearance:none;appearance:none}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:#c4a86a}
+.form-group select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a7d68' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.unit-toggle{display:flex;border:1.5px solid #d4cec0;border-radius:8px;overflow:hidden;margin-bottom:14px}
+.unit-btn{flex:1;padding:9px;border:none;background:#fffdf8;font-size:13px;font-weight:700;color:#8a7d68;transition:all 0.2s}
+.unit-btn.active{background:#2c2416;color:#fffdf8}
+.add-reading-btn{width:100%;padding:13px;border:2px solid #c4a86a;border-radius:10px;background:rgba(196,168,106,0.08);font-size:14px;font-weight:700;color:#8a6a00;transition:all 0.2s}
+.add-reading-btn:active{background:rgba(196,168,106,0.18)}
+.readings-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.reading-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f8f4ec;border-radius:8px;border:1px solid #e2ddd3}
+.reading-item-left{display:flex;flex-direction:column;gap:2px}
+.reading-item-time{font-size:12px;font-weight:700;color:#2c2416}
+.reading-item-age{font-size:11px;color:#8a7d68}
+.reading-item-val{font-size:16px;font-weight:800;color:#2c2416}
+.reading-item-zone{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px}
+.zone-below{background:#e8f5e9;color:#2e7d32}
+.zone-photo{background:#fff3e0;color:#e65100}
+.zone-exchange{background:#fce4ec;color:#c62828}
+.zone-unknown{background:#f3f4f6;color:#6b7280;border:1px solid #d1d5db}
+.delete-reading{background:none;border:none;font-size:16px;color:#c4b898;padding:4px 6px}
+.chart-wrap{position:relative;border-radius:12px;overflow:hidden;border:1.5px solid #d4cec0;background:#fffdf8;margin-bottom:14px}
+.chart-wrap canvas{display:block;width:100%}
+.chart-legend{display:flex;flex-wrap:wrap;gap:8px;padding:12px 14px;border-top:1px solid #e2ddd3;background:#f8f4ec}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#6b5e4a}
+.legend-dot{width:10px;height:4px;border-radius:2px;flex-shrink:0}
+.bili-result-box{border-radius:10px;padding:14px 16px;margin-bottom:10px;border-width:1.5px;border-style:solid}
+.bili-result-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:4px}
+.bili-result-text{font-size:13px;line-height:1.55;font-weight:500}
+.clear-btn{width:100%;padding:11px;border:1.5px solid #ef9a9a;border-radius:8px;background:#fce4ec;font-size:13px;font-weight:600;color:#c62828;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="container" id="app"></div>
+<script>
+// ===== TRANSLATIONS =====
+const T = {
+  cy: {
+    appTitle: "Offer Clinigol Pediatrig",
+    appSubtitle: "Gwiriwr Lliw a Bilirubin",
+    homeStoolTitle: "Gwiriwr Lliw Carthion",
+    homeStoolDesc: "Cymharu lliw carthion ag ystod gyfeiriol sy'n seiliedig ar gerdyn lliw Taiwan",
+    homeVomitTitle: "Gwiriwr Lliw Chwydu",
+    homeVomitDesc: "Adnabod lliwiau chwydu arwyddocaol yn glinigol, gan gynnwys chwydu bustlog",
+    homeBiliTitle: "Plotiwr Bilirubin",
+    homeBiliDesc: "Plotiwch fesuriadau bilirubin yn erbyn trothwyon ffototherapi NICE CG98",
+    langToggle: "EN / CY",
+    back: "← Yn ôl",
+    stoolTitle: "Gwiriwr Lliw Carthion",
+    vomitTitle: "Gwiriwr Lliw Chwydu",
+    biliTitle: "Plotiwr Bilirubin NICE CG98",
+    cameraMatch: "📷 Camera", referenceCard: "📋 Cerdyn Cyfeirio",
+    stoolCard: "Cerdyn Lliw Carthion", abnormal: "1-3 Annormal", normal: "4-7 Normal",
+    takePhoto: "Tynnu Llun Nawr", takePhotoDesc: "Agor eich camera i dynnu llun.",
+    photoLibrary: "Dewis o'r Llyfrgell Lluniau", photoLibraryDesc: "Dewis llun rydych eisoes wedi'i dynnu.",
+    tipsTitle: "📌 Awgrymiadau ar gyfer Canlyniadau Cywir",
+    tipLighting: "Golau:", tipLightingDesc: "Defnyddiwch olau dydd naturiol. Osgowch fflach a golau fflworoleuol.",
+    tipFraming: "Fframio:", tipFramingDesc: "Agorwch y cewyn yn fflat. Llenwch y ffrâm gyda'r ardal ganolog.",
+    tipSampling: "Samplu:", tipSamplingDesc: "Tapiwch yr ardal fwyaf cynrychioliadol. Osgowch ymylon a chysgodion.",
+    tipRepeat: "Ailadrodd:", tipRepeatDesc: "Tapiwch sawl man i gadarnhau cysondeb.",
+    tapStool: "Tapiwch y carthion", tapVomit: "Tapiwch y chwydu", toAnalyse: "i ddadansoddi'r lliw",
+    newPhoto: "↺ Llun Newydd", retake: "📷 Ail-dynnu", library: "🖼 Llyfrgell",
+    abnormalInvestigate: "⚠ ANNORMAL - YMCHWILIO", redFlag: "⚠ BANER GOCH", normalLabel: "✓ NORMAL",
+    card: "Cerdyn", management: "Rheolaeth", keyPoint: "Pwynt Allweddol",
+    baAlert: "Rhybudd Atresia Biliari",
+    baText: "Gwiriwch bilirubin cyfunol ar frys. Os yw'n uchel gyda carthion golau, cyfeiriwch at hepatoleg/llawfeddygaeth bediatrig. Mae canlyniadau portoentorostomi Kasai yn dibynnu ar amser. Anelwch am lawdriniaeth cyn 60 diwrnod oed.",
+    colourDetail: "Manylion dadansoddiad lliw",
+    satLow: "ISEL - ystod acholig ⚠", satOk: "DIGONOL - pigmentog ✓",
+    footerLine1: "Mae lliwiau sgrin yn fras. Defnyddiwch gardiau lliw carthion dilys ochr yn ochr.",
+    footerLine2: "Nid dyfais ddiagnostig. Mae angen cydberthynas glinigol.",
+    stoolRefNote: "Mae'r lliwiau isod yn seiliedig ar gerdyn lliw carthion babanod Taiwan (Chen et al., Pediatrics 2006), y safon ryngwladol ar gyfer sgrinio atresia biliari.",
+    vomitRefNote: "Mae'r lliwiau isod yn seiliedig ar Walker et al. (BMJ 2006).",
+    references: "Cyfeiriadau",
+    ABNORMAL: "ANNORMAL", NORMAL: "NORMAL",
+    // Bilirubin tool
+    biliInputSection: "Manylion y Claf",
+    biliDOB: "Dyddiad Geni",
+    biliTOB: "Amser Geni",
+    biliGestation: "Oedran Claddu (wythnosau)",
+    biliReadingSection: "Ychwanegu Darlleniad",
+    biliDate: "Dyddiad Sampl",
+    biliTime: "Amser Sampl",
+    biliLevel: "Lefel Bilirubin",
+    biliUnit: "Uned",
+    biliAddBtn: "Ychwanegu Darlleniad",
+    biliReadings: "Darlleniadau",
+    biliNoReadings: "Dim darlleniadau eto — ychwanegwch un uchod",
+    biliClearAll: "Clirio Pob Darlleniad",
+    biliChartTitle: "Siart Bilirubin NICE CG98",
+    biliAgeHours: "Oedran (oriau)",
+    biliLevelAxis: "Bilirubin",
+    biliPhotoLine: "Ffototherapi",
+    biliExchangeLine: "Cyfnewid Gwaed",
+    biliPlotLine: "Mesuriadau",
+    biliZoneBelow: "Islaw Ffototherapi",
+    biliZonePhoto: "Trothwy Ffototherapi",
+    biliZoneExchange: "Trothwy Cyfnewid Gwaed",
+    biliResultBelow: "✓ Islaw trothwy ffototherapi",
+    biliResultBelowText: "Lefel bilirubin gyfredol islaw'r trothwy ffototherapi. Parhewch i fonitro yn ôl canllawiau clinigol.",
+    biliResultPhoto: "⚠ Yn cyrraedd / uwchlaw trothwy ffototherapi",
+    biliResultPhotoText: "Mae'r lefel hon yn awgrymu ystyried ffototherapi. Cyfeiriwch at ganllawiau NICE CG98 a gwerthuswch yn glinigol.",
+    biliResultExchange: "🚨 Yn cyrraedd / uwchlaw trothwy cyfnewid gwaed",
+    biliResultExchangeText: "Mae'r lefel hon yn cyrraedd y trothwy cyfnewid gwaed. Gwerthusiad clinigol BRYS ac ystyried cyfnewid gwaed.",
+    biliGestLabel: "≥38 wythnos", biliGest35: "35–37 wythnos", biliGest28: "28–34 wythnos",
+    biliHoursOld: "o oed",
+    biliFooter: "Yn seiliedig ar NICE Canllawiau CG98: Icterws Neonatal (2010). Nid yw hwn yn disodli barn glinigol.",
+    biliGestSelect38: "≥38 wythnos", biliGestSelect35: "35–37 wythnos (Cymharol)", biliGestSelect28: "28–34 wythnos (Cyn-aeddfed)",
+    deleteLbl: "Dileu",
+    biliZoneUnknown: "Data ar goll",
+    biliZoneUnknownText: "Nid yw data trothwy ar gyfer yr oedran claddu hwn wedi'i ychwanegu eto. Defnyddiwch siartiau NICE CG98 swyddogol.",
+    biliDataPending: "⚠ Data trothwy ar gyfer yr oedran claddu hwn yn aros — ni ellir plotio ar y graff. Defnyddiwch y siartiau NICE CG98 swyddogol yn y cyfamser.",
+  },
+  en: {
+    appTitle: "Paediatric Clinical Tools",
+    appSubtitle: "Colour Checker & Bilirubin Plotter",
+    homeStoolTitle: "Stool Colour Checker",
+    homeStoolDesc: "Match stool colour against reference range based on Taiwan stool colour card",
+    homeVomitTitle: "Vomit Colour Checker",
+    homeVomitDesc: "Identify clinically significant vomit colours, including true bilious vomiting",
+    homeBiliTitle: "Bilirubin Plotter",
+    homeBiliDesc: "Plot bilirubin measurements against NICE CG98 phototherapy thresholds",
+    langToggle: "EN / CY",
+    back: "← Back",
+    stoolTitle: "Stool Colour Checker",
+    vomitTitle: "Vomit Colour Checker",
+    biliTitle: "NICE CG98 Bilirubin Plotter",
+    cameraMatch: "📷 Camera Match", referenceCard: "📋 Reference Card",
+    stoolCard: "Stool Colour Card", abnormal: "1-3 Abnormal", normal: "4-7 Normal",
+    takePhoto: "Take a Photo Now", takePhotoDesc: "Opens your camera to photograph directly.",
+    photoLibrary: "Choose from Photo Library", photoLibraryDesc: "Select a photo you have already taken from your camera roll.",
+    tipsTitle: "📌 Tips for Accurate Results",
+    tipLighting: "Lighting:", tipLightingDesc: "Use natural daylight. Avoid flash and fluorescent light.",
+    tipFraming: "Framing:", tipFramingDesc: "Open nappy flat. Fill frame with central stool area.",
+    tipSampling: "Sampling:", tipSamplingDesc: "Tap the most representative area. Avoid edges and shadows.",
+    tipRepeat: "Repeat:", tipRepeatDesc: "Tap multiple spots to confirm consistency.",
+    tapStool: "Tap the stool", tapVomit: "Tap the vomit", toAnalyse: "to analyse colour",
+    newPhoto: "↺ New Photo", retake: "📷 Retake", library: "🖼 Library",
+    abnormalInvestigate: "⚠ ABNORMAL - INVESTIGATE", redFlag: "⚠ RED FLAG", normalLabel: "✓ NORMAL",
+    card: "Card", management: "Management", keyPoint: "Key Point",
+    baAlert: "Biliary Atresia Alert",
+    baText: "Check conjugated bilirubin urgently. If elevated with pale stools, refer to paediatric hepatology/surgery. Kasai portoenterostomy outcomes are time-dependent. Aim for surgery before 60 days of life.",
+    colourDetail: "Colour analysis detail",
+    satLow: "LOW - acholic range ⚠", satOk: "ADEQUATE - pigmented ✓",
+    footerLine1: "Screen colours are approximate. Use validated stool colour cards alongside this tool.",
+    footerLine2: "Not a diagnostic device. Clinical correlation required.",
+    stoolRefNote: "The colours below are based on the Taiwan infant stool colour card (Chen et al., Pediatrics 2006), the international standard for biliary atresia screening.",
+    vomitRefNote: "The colours below are based on Walker et al. (BMJ 2006).",
+    references: "References",
+    ABNORMAL: "ABNORMAL", NORMAL: "NORMAL",
+    // Bilirubin tool
+    biliInputSection: "Patient Details",
+    biliDOB: "Date of Birth",
+    biliTOB: "Time of Birth",
+    biliGestation: "Gestational Age (weeks)",
+    biliReadingSection: "Add Reading",
+    biliDate: "Sample Date",
+    biliTime: "Sample Time",
+    biliLevel: "Bilirubin Level",
+    biliUnit: "Unit",
+    biliAddBtn: "Add Reading",
+    biliReadings: "Readings",
+    biliNoReadings: "No readings yet — add one above",
+    biliClearAll: "Clear All Readings",
+    biliChartTitle: "NICE CG98 Bilirubin Chart",
+    biliAgeHours: "Age (hours)",
+    biliLevelAxis: "Bilirubin",
+    biliPhotoLine: "Phototherapy",
+    biliExchangeLine: "Exchange Transfusion",
+    biliPlotLine: "Measurements",
+    biliZoneBelow: "Below Phototherapy",
+    biliZonePhoto: "Phototherapy Threshold",
+    biliZoneExchange: "Exchange Transfusion Threshold",
+    biliResultBelow: "✓ Below phototherapy threshold",
+    biliResultBelowText: "Current bilirubin level is below the phototherapy threshold. Continue monitoring as per clinical guidelines.",
+    biliResultPhoto: "⚠ At / above phototherapy threshold",
+    biliResultPhotoText: "This level suggests consideration of phototherapy. Refer to NICE CG98 guidelines and assess clinically.",
+    biliResultExchange: "🚨 At / above exchange transfusion threshold",
+    biliResultExchangeText: "This level meets the exchange transfusion threshold. URGENT clinical evaluation and consideration of exchange transfusion.",
+    biliGestLabel: "≥38 weeks", biliGest35: "35–37 weeks", biliGest28: "28–34 weeks",
+    biliHoursOld: "hours old",
+    biliFooter: "Based on NICE Guideline CG98: Neonatal Jaundice (2010). Does not replace clinical judgement.",
+    biliGestSelect38: "≥38 weeks (Term)", biliGestSelect35: "35–37 weeks (Near-term)", biliGestSelect28: "28–34 weeks (Preterm)",
+    deleteLbl: "Delete",
+    biliZoneUnknown: "Data pending",
+    biliZoneUnknownText: "Threshold data for this gestational age has not yet been added. Use the official NICE CG98 charts.",
+    biliDataPending: "⚠ Threshold data for this gestational age is pending — chart cannot be plotted. Use the official NICE CG98 charts in the meantime.",
+  }
+};
+
+// ===== NICE CG98 BILIRUBIN THRESHOLDS =====
+// Data points from NICE CG98 charts (hour, phototherapy µmol/L, exchange µmol/L)
+// Three gestational age bands: >=38w, 35-37w, 28-34w
+const BILI_THRESHOLDS = {
+  // ===== ≥38 WEEKS =====
+  // SOURCE: NICE CG98 Table 1 (exact published values, µmol/L)
+  term: {
+    photo: [[0,100],[6,125],[12,150],[18,175],[24,200],[30,212],[36,225],[42,237],[48,250],[54,262],[60,275],[66,287],[72,300],[78,312],[84,325],[90,337],[96,350]],
+    exchange: [[0,100],[6,150],[12,200],[18,250],[24,300],[30,350],[36,400],[42,450],[48,450],[54,450],[60,450],[66,450],[72,450],[78,450],[84,450],[90,450],[96,450]]
+  },
+  // ===== GESTATION-SPECIFIC 23–37 WEEKS =====
+  // SOURCE: NICE CG98 Excel tool formula (Kendall & Cole), µmol/L
+  // Formula: photo_plateau = gestation*10-100, exchange_plateau = gestation*10
+  // Linear ramp from (photo=40, exchange=80) at 0h to plateau at 72h, flat thereafter
+  w23: {
+    photo: [[0,40],[6,48],[12,55],[18,62],[24,70],[30,78],[36,85],[42,92],[48,100],[54,108],[60,115],[66,122],[72,130],[78,130],[84,130],[90,130],[96,130]],
+    exchange: [[0,80],[6,92],[12,105],[18,118],[24,130],[30,142],[36,155],[42,168],[48,180],[54,192],[60,205],[66,218],[72,230],[78,230],[84,230],[90,230],[96,230]]
+  },
+  w24: {
+    photo: [[0,40],[6,48],[12,57],[18,65],[24,73],[30,82],[36,90],[42,98],[48,107],[54,115],[60,123],[66,132],[72,140],[78,140],[84,140],[90,140],[96,140]],
+    exchange: [[0,80],[6,93],[12,107],[18,120],[24,133],[30,147],[36,160],[42,173],[48,187],[54,200],[60,213],[66,227],[72,240],[78,240],[84,240],[90,240],[96,240]]
+  },
+  w25: {
+    photo: [[0,40],[6,49],[12,58],[18,68],[24,77],[30,86],[36,95],[42,104],[48,113],[54,122],[60,132],[66,141],[72,150],[78,150],[84,150],[90,150],[96,150]],
+    exchange: [[0,80],[6,94],[12,108],[18,122],[24,137],[30,151],[36,165],[42,179],[48,193],[54,208],[60,222],[66,236],[72,250],[78,250],[84,250],[90,250],[96,250]]
+  },
+  w26: {
+    photo: [[0,40],[6,50],[12,60],[18,70],[24,80],[30,90],[36,100],[42,110],[48,120],[54,130],[60,140],[66,150],[72,160],[78,160],[84,160],[90,160],[96,160]],
+    exchange: [[0,80],[6,95],[12,110],[18,125],[24,140],[30,155],[36,170],[42,185],[48,200],[54,215],[60,230],[66,245],[72,260],[78,260],[84,260],[90,260],[96,260]]
+  },
+  w27: {
+    photo: [[0,40],[6,51],[12,62],[18,72],[24,83],[30,94],[36,105],[42,116],[48,127],[54,138],[60,148],[66,159],[72,170],[78,170],[84,170],[90,170],[96,170]],
+    exchange: [[0,80],[6,96],[12,112],[18,128],[24,143],[30,159],[36,175],[42,191],[48,207],[54,222],[60,238],[66,254],[72,270],[78,270],[84,270],[90,270],[96,270]]
+  },
+  w28: {
+    photo: [[0,40],[6,52],[12,63],[18,75],[24,87],[30,98],[36,110],[42,122],[48,133],[54,145],[60,157],[66,168],[72,180],[78,180],[84,180],[90,180],[96,180]],
+    exchange: [[0,80],[6,97],[12,113],[18,130],[24,147],[30,163],[36,180],[42,197],[48,213],[54,230],[60,247],[66,263],[72,280],[78,280],[84,280],[90,280],[96,280]]
+  },
+  w29: {
+    photo: [[0,40],[6,52],[12,65],[18,78],[24,90],[30,102],[36,115],[42,128],[48,140],[54,152],[60,165],[66,178],[72,190],[78,190],[84,190],[90,190],[96,190]],
+    exchange: [[0,80],[6,98],[12,115],[18,132],[24,150],[30,168],[36,185],[42,202],[48,220],[54,238],[60,255],[66,272],[72,290],[78,290],[84,290],[90,290],[96,290]]
+  },
+  w30: {
+    photo: [[0,40],[6,53],[12,67],[18,80],[24,93],[30,107],[36,120],[42,133],[48,147],[54,160],[60,173],[66,187],[72,200],[78,200],[84,200],[90,200],[96,200]],
+    exchange: [[0,80],[6,98],[12,117],[18,135],[24,153],[30,172],[36,190],[42,208],[48,227],[54,245],[60,263],[66,282],[72,300],[78,300],[84,300],[90,300],[96,300]]
+  },
+  w31: {
+    photo: [[0,40],[6,54],[12,68],[18,82],[24,97],[30,111],[36,125],[42,139],[48,153],[54,168],[60,182],[66,196],[72,210],[78,210],[84,210],[90,210],[96,210]],
+    exchange: [[0,80],[6,99],[12,118],[18,138],[24,157],[30,176],[36,195],[42,214],[48,233],[54,252],[60,272],[66,291],[72,310],[78,310],[84,310],[90,310],[96,310]]
+  },
+  w32: {
+    photo: [[0,40],[6,55],[12,70],[18,85],[24,100],[30,115],[36,130],[42,145],[48,160],[54,175],[60,190],[66,205],[72,220],[78,220],[84,220],[90,220],[96,220]],
+    exchange: [[0,80],[6,100],[12,120],[18,140],[24,160],[30,180],[36,200],[42,220],[48,240],[54,260],[60,280],[66,300],[72,320],[78,320],[84,320],[90,320],[96,320]]
+  },
+  w33: {
+    photo: [[0,40],[6,56],[12,72],[18,88],[24,103],[30,119],[36,135],[42,151],[48,167],[54,182],[60,198],[66,214],[72,230],[78,230],[84,230],[90,230],[96,230]],
+    exchange: [[0,80],[6,101],[12,122],[18,142],[24,163],[30,184],[36,205],[42,226],[48,247],[54,268],[60,288],[66,309],[72,330],[78,330],[84,330],[90,330],[96,330]]
+  },
+  w34: {
+    photo: [[0,40],[6,57],[12,73],[18,90],[24,107],[30,123],[36,140],[42,157],[48,173],[54,190],[60,207],[66,223],[72,240],[78,240],[84,240],[90,240],[96,240]],
+    exchange: [[0,80],[6,102],[12,123],[18,145],[24,167],[30,188],[36,210],[42,232],[48,253],[54,275],[60,297],[66,318],[72,340],[78,340],[84,340],[90,340],[96,340]]
+  },
+  w35: {
+    photo: [[0,40],[6,58],[12,75],[18,92],[24,110],[30,128],[36,145],[42,162],[48,180],[54,198],[60,215],[66,232],[72,250],[78,250],[84,250],[90,250],[96,250]],
+    exchange: [[0,80],[6,102],[12,125],[18,148],[24,170],[30,192],[36,215],[42,238],[48,260],[54,282],[60,305],[66,328],[72,350],[78,350],[84,350],[90,350],[96,350]]
+  },
+  w36: {
+    photo: [[0,40],[6,58],[12,77],[18,95],[24,113],[30,132],[36,150],[42,168],[48,187],[54,205],[60,223],[66,242],[72,260],[78,260],[84,260],[90,260],[96,260]],
+    exchange: [[0,80],[6,103],[12,127],[18,150],[24,173],[30,197],[36,220],[42,243],[48,267],[54,290],[60,313],[66,337],[72,360],[78,360],[84,360],[90,360],[96,360]]
+  },
+  w37: {
+    photo: [[0,40],[6,59],[12,78],[18,98],[24,117],[30,136],[36,155],[42,174],[48,193],[54,212],[60,232],[66,251],[72,270],[78,270],[84,270],[90,270],[96,270]],
+    exchange: [[0,80],[6,104],[12,128],[18,152],[24,177],[30,201],[36,225],[42,249],[48,273],[54,298],[60,322],[66,346],[72,370],[78,370],[84,370],[90,370],[96,370]]
+  }
+};
+
+// ===== STOOL / VOMIT DATA =====
+const STOOL_CARDS = [
+  {id:"c1",n:1,name:{en:"White / Chalky",cy:"Gwyn / Sialcog"},hex:"#f0ece0",cat:"abnormal",
+    hsv:{hMin:0,hMax:60,sMin:0,sMax:15,vMin:80,vMax:100},
+    desc:{en:"Completely acholic - no bile pigment reaching bowel.",cy:"Cwbl acholig - dim pigment bustl yn cyrraedd y coluddyn."},
+    mgmt:{en:"URGENT: Check conjugated bilirubin. Refer paediatric hepatology/surgery. USS liver. Consider HIDA scan. Kasai before 60 days.",cy:"BRYS: Gwiriwch bilirubin cyfunol. Cyfeiriwch at hepatoleg/llawfeddygaeth bediatrig. USS iau. Ystyriwch sgan HIDA. Kasai cyn 60 diwrnod."},tip:{en:"",cy:""}},
+  {id:"c2",n:2,name:{en:"Pale Grey / Clay",cy:"Llwyd Golau / Clai"},hex:"#d8ceb8",cat:"abnormal",
+    hsv:{hMin:20,hMax:55,sMin:3,sMax:22,vMin:68,vMax:94},
+    desc:{en:"Very pale - minimal bile pigment, likely obstructive.",cy:"Golau iawn - pigment bustl lleiaf, tebygol o fod yn rhwystrol."},
+    mgmt:{en:"URGENT: Conjugated bilirubin, hepatology referral. Do not delay.",cy:"BRYS: Bilirubin cyfunol, cyfeiriad hepatoleg. Peidiwch ag oedi."},tip:{en:"",cy:""}},
+  {id:"c3",n:3,name:{en:"Pale Caramel",cy:"Caramel Golau"},hex:"#d4c89c",cat:"abnormal",
+    hsv:{hMin:35,hMax:58,sMin:10,sMax:32,vMin:62,vMax:90},
+    desc:{en:"Borderline acholic - reduced bile. Most commonly missed colour.",cy:"Acholig ar y ffin - bustl llai. Y lliw a gollir amlaf."},
+    mgmt:{en:"INVESTIGATE: Conjugated bilirubin and clinical review. If conjugated fraction elevated, treat as abnormal.",cy:"YMCHWILIO: Bilirubin cyfunol ac adolygiad clinigol. Os yw'r ffracsiwn cyfunol yn uchel, triniwch fel annormal."},
+    tip:{en:"This borderline colour is the one most often missed. If in any doubt - investigate.",cy:"Dyma'r lliw ar y ffin sy'n cael ei golli amlaf. Os oes unrhyw amheuaeth - ymchwiliwch."}},
+  {id:"c4",n:4,name:{en:"Light Yellow-Brown",cy:"Melyn-Frown Golau"},hex:"#c8a84c",cat:"normal",
+    hsv:{hMin:35,hMax:55,sMin:30,sMax:72,vMin:52,vMax:85},
+    desc:{en:"Normal - adequate bile pigment present.",cy:"Normal - pigment bustl digonol yn bresennol."},
+    mgmt:{en:"Reassure. Normal stool pigmentation.",cy:"Tawelwch feddwl. Pigmentiad carthion normal."},tip:{en:"",cy:""}},
+  {id:"c5",n:5,name:{en:"Mustard Yellow",cy:"Melyn Mwstard"},hex:"#c4a030",cat:"normal",
+    hsv:{hMin:38,hMax:56,sMin:48,sMax:88,vMin:48,vMax:84},
+    desc:{en:"Normal breastfed infant stool - good bile flow.",cy:"Carthion baban ar y fron - llif bustl da."},
+    mgmt:{en:"Reassure. Typical breastfed stool.",cy:"Tawelwch feddwl. Carthion nodweddiadol baban ar y fron."},tip:{en:"",cy:""}},
+  {id:"c6",n:6,name:{en:"Brown",cy:"Brown"},hex:"#8a6830",cat:"normal",
+    hsv:{hMin:22,hMax:50,sMin:38,sMax:82,vMin:28,vMax:62},
+    desc:{en:"Normal formula-fed / older infant stool.",cy:"Carthion baban ar fformiwla / baban hyn - normal."},
+    mgmt:{en:"Reassure. Normal stool colour.",cy:"Tawelwch feddwl. Lliw carthion normal."},tip:{en:"",cy:""}},
+  {id:"c7",n:7,name:{en:"Dark Green-Brown",cy:"Gwyrdd-Frown Tywyll"},hex:"#4a6828",cat:"normal",
+    hsv:{hMin:55,hMax:145,sMin:28,sMax:82,vMin:18,vMax:56},
+    desc:{en:"Normal - meconium transition, iron, or green vegetables.",cy:"Normal - trawsnewid meconiwm, haearn, neu lysiau gwyrdd."},
+    mgmt:{en:"Reassure. Green stools are normal.",cy:"Tawelwch feddwl. Mae carthion gwyrdd yn normal."},tip:{en:"",cy:""}},
+];
+const VOMIT_CARDS = [
+  {id:"v1",name:{en:"Clear / White",cy:"Clir / Gwyn"},hex:"#eeedea",cat:"normal",label:{en:"Benign",cy:"Diniwed"},
+    hsv:{hMin:0,hMax:60,sMin:0,sMax:12,vMin:84,vMax:100},
+    desc:{en:"Gastric secretions / saliva. Common with viral gastroenteritis.",cy:"Secretiadau gastrig / poer. Cyffredin gyda gastroenteritis feirysol."},
+    mgmt:{en:"Assess hydration. Supportive care.",cy:"Aseswch hydradu. Gofal cefnogol."},tip:{en:"",cy:""}},
+  {id:"v2",name:{en:"Yellow (NOT Bilious)",cy:"Melyn (NID Bustlog)"},hex:"#e0be30",cat:"normal",label:{en:"Benign",cy:"Diniwed"},
+    hsv:{hMin:40,hMax:60,sMin:45,sMax:98,vMin:62,vMax:98},
+    desc:{en:"Bile-tinged gastric contents from duodenal reflux. Parents frequently describe this as 'green' or 'bilious' - it is NOT.",cy:"Cynnwys gastrig wedi'i liwio gan fustl o adlifiad dwodenal. Mae rhieni'n aml yn disgrifio hwn fel 'gwyrdd' neu 'bustlog' - NID yw."},
+    mgmt:{en:"Reassure. NOT true bilious vomiting.",cy:"Tawelwch feddwl. NID chwydu bustlog gwirioneddol."},
+    tip:{en:"Parents frequently call this 'bilious'. Compare with the green sample - true bilious vomiting is distinctly GREEN.",cy:"Mae rhieni'n aml yn galw hwn yn 'fustlog'. Cymharwch gyda'r sampl gwyrdd - mae chwydu bustlog gwirioneddol yn WYRDD pendant."}},
+  {id:"v3",name:{en:"Orange",cy:"Oren"},hex:"#e08828",cat:"normal",label:{en:"Benign",cy:"Diniwed"},
+    hsv:{hMin:18,hMax:42,sMin:48,sMax:98,vMin:58,vMax:94},
+    desc:{en:"Partially digested food, medications, or food colouring (carrots, squash).",cy:"Bwyd wedi'i dreulio'n rhannol, meddyginiaethau, neu liwiau bwyd (moron, sgwash)."},
+    mgmt:{en:"Dietary history. Usually reassurance.",cy:"Hanes deietegol. Tawelwch feddwl fel arfer."},tip:{en:"",cy:""}},
+  {id:"v4",name:{en:"Green (TRUE Bilious)",cy:"Gwyrdd (Bustlog GWIR)"},hex:"#4a8a38",cat:"urgent",label:{en:"RED FLAG",cy:"BANER GOCH"},
+    hsv:{hMin:65,hMax:165,sMin:28,sMax:92,vMin:22,vMax:68},
+    desc:{en:"True bilious vomiting - distinctly GREEN. In neonates, surgical emergency until proven otherwise (malrotation with volvulus).",cy:"Chwydu bustlog gwirioneddol - GWYRDD pendant. Mewn newydd-anedigion, argyfwng llawfeddygol nes profi fel arall (camgylchdroi gyda folfwlws)."},
+    mgmt:{en:"URGENT: Senior review. NPO. NG tube. Surgical referral. Upper GI contrast study.",cy:"BRYS: Adolygiad uwch. NPO. Tiwb NG. Cyfeiriad llawfeddygol. Astudiaeth gyferbyniad GI uchaf."},
+    tip:{en:"This is the colour that matters. Compare carefully with the yellow sample above.",cy:"Dyma'r lliw sy'n bwysig. Cymharwch yn ofalus gyda'r sampl melyn uchod."}},
+  {id:"v5",name:{en:"Red / Bloody",cy:"Coch / Gwaedlyd"},hex:"#c43030",cat:"urgent",label:{en:"RED FLAG",cy:"BANER GOCH"},
+    hsv:{hMin:340,hMax:20,sMin:38,sMax:98,vMin:28,vMax:88},
+    desc:{en:"Haematemesis. Consider varices, Mallory-Weiss, peptic ulcer. In neonates, consider swallowed maternal blood (Apt test).",cy:"Haematemesis. Ystyriwch farisau, Mallory-Weiss, wlser peptig. Mewn newydd-anedigion, ystyriwch waed mamol wedi'i lyncu (prawf Apt)."},
+    mgmt:{en:"URGENT: Haemodynamic assessment. IV access, FBC, coag, G&S. Consider OGD.",cy:"BRYS: Asesiad haemodynamig. Mynediad IV, FBC, coag, G&S. Ystyriwch OGD."},tip:{en:"",cy:""}},
+  {id:"v6",name:{en:"Coffee-Ground",cy:"Gwaddod Coffi"},hex:"#5c3a2a",cat:"urgent",label:{en:"RED FLAG",cy:"BANER GOCH"},
+    hsv:{hMin:8,hMax:38,sMin:22,sMax:68,vMin:10,vMax:42},
+    desc:{en:"Altered blood - partially digested haemoglobin. Upper GI bleeding.",cy:"Gwaed wedi'i newid - haemoglobin wedi'i dreulio'n rhannol. Gwaedu GI uchaf."},
+    mgmt:{en:"URGENT: As per haematemesis. IV access. Senior review.",cy:"BRYS: Fel haematemesis. Mynediad IV. Adolygiad uwch."},tip:{en:"",cy:""}},
+];
+
+// ===== STATE =====
+let lang = null;
+let screen = 'lang'; // 'lang' | 'home' | 'stool' | 'vomit' | 'bili'
+let mode = 'stool';
+let view = 'camera';
+let capturedImage = null;
+let pickerPos = null;
+let analysisResult = null;
+let expandedCard = null;
+let showTech = false;
+// Bilirubin state
+let biliDOB = '';
+let biliTOB = '';
+let biliGestation = '38';
+let biliUnit = 'umol';
+let biliReadings = [];
+let biliSampleDate = '';
+let biliSampleTime = '';
+let biliLevelInput = '';
+
+function t(key) { return T[lang]?.[key] || T.en[key] || key; }
+function tField(obj) { return (typeof obj === 'object') ? (obj[lang] || obj.en || '') : obj; }
+function getRefs() { return mode === 'stool' ? STOOL_CARDS : VOMIT_CARDS; }
+function isUrg(c) { return c.cat === 'abnormal' || c.cat === 'urgent'; }
+
+// ===== COLOUR ANALYSIS =====
+function rgb2hsv(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;if(d){if(mx===r)h=((g-b)/d+(g<b?6:0))*60;else if(mx===g)h=((b-r)/d+2)*60;else h=((r-g)/d+4)*60;}return{h,s:mx?(d/mx)*100:0,v:mx*100};}
+function matchColour(hsv,refs){let best=null,bestS=Infinity;for(const ref of refs){const r=ref.hsv;let hD=0,sD=0,vD=0;if(r.hMin>r.hMax){if(!(hsv.h>=r.hMin||hsv.h<=r.hMax))hD=Math.min(Math.abs(hsv.h-r.hMin),Math.abs(hsv.h-r.hMax+360)%360);}else{if(hsv.h<r.hMin)hD=r.hMin-hsv.h;else if(hsv.h>r.hMax)hD=hsv.h-r.hMax;}if(hsv.s<r.sMin)sD=r.sMin-hsv.s;else if(hsv.s>r.sMax)sD=hsv.s-r.sMax;if(hsv.v<r.vMin)vD=r.vMin-hsv.v;else if(hsv.v>r.vMax)vD=hsv.v-r.vMax;const sc=hD*1.0+sD*2.5+vD*1.2;if(sc<bestS){bestS=sc;best={...ref,score:sc};}}return{match:best,confidence:Math.max(0,100-bestS*2)};}
+function sampleArea(ctx,x,y,rad){const s=rad*2,sx=Math.max(0,Math.floor(x-rad)),sy=Math.max(0,Math.floor(y-rad));const w=Math.min(s,ctx.canvas.width-sx),h=Math.min(s,ctx.canvas.height-sy);if(w<=0||h<=0)return{r:128,g:128,b:128};const d=ctx.getImageData(sx,sy,w,h).data;let rS=0,gS=0,bS=0,c=0;for(let i=0;i<d.length;i+=4){rS+=d[i];gS+=d[i+1];bS+=d[i+2];c++;}return{r:Math.round(rS/c),g:Math.round(gS/c),b:Math.round(bS/c)};}
+
+// ===== BILIRUBIN CALCULATIONS =====
+function getBiliThresholdBand() {
+  const g = parseInt(biliGestation) || 38;
+  if (g >= 38) return 'term';
+  if (g >= 23 && g <= 37) return 'w' + g;
+  return 'term'; // fallback
+}
+
+function thresholdBandLabel() {
+  const g = parseInt(biliGestation) || 38;
+  return g >= 38 ? '≥38 weeks (Term)' : g + ' weeks';
+}
+
+function thresholdBandHasData(band) {
+  return band in BILI_THRESHOLDS && BILI_THRESHOLDS[band].photo[0][1] !== null;
+}
+
+function interpolateThreshold(points, hours) {
+  if (points[0][1] === null) return null;
+  if (hours <= points[0][0]) return points[0][1];
+  if (hours >= points[points.length-1][0]) return points[points.length-1][1];
+  for (let i = 0; i < points.length-1; i++) {
+    if (hours >= points[i][0] && hours <= points[i+1][0]) {
+      const t = (hours - points[i][0]) / (points[i+1][0] - points[i][0]);
+      return points[i][1] + t * (points[i+1][1] - points[i][1]);
+    }
+  }
+  return null;
+}
+
+function calcAgeHours(sampleDateStr, sampleTimeStr) {
+  if (!biliDOB || !biliTOB || !sampleDateStr || !sampleTimeStr) return null;
+  const birth = new Date(`${biliDOB}T${biliTOB}`);
+  const sample = new Date(`${sampleDateStr}T${sampleTimeStr}`);
+  if (isNaN(birth.getTime()) || isNaN(sample.getTime())) return null;
+  const diffMs = sample - birth;
+  if (diffMs < 0) return null;
+  return diffMs / (1000 * 60 * 60);
+}
+
+function umolToMgdl(v) { return v / 17.1; }
+function mgdlToUmol(v) { return v * 17.1; }
+function toUmol(v) { return biliUnit === 'umol' ? v : mgdlToUmol(v); }
+function fromUmol(v) { return biliUnit === 'umol' ? v : umolToMgdl(v); }
+function unitLabel() { return biliUnit === 'umol' ? 'µmol/L' : 'mg/dL'; }
+
+function getBiliZone(ageHours, umolLevel) {
+  const band = getBiliThresholdBand();
+  if (!thresholdBandHasData(band)) return 'unknown';
+  const thresholds = BILI_THRESHOLDS[band];
+  const photoThresh = interpolateThreshold(thresholds.photo, ageHours);
+  const exchThresh = interpolateThreshold(thresholds.exchange, ageHours);
+  if (photoThresh === null || exchThresh === null) return 'unknown';
+  if (umolLevel >= exchThresh) return 'exchange';
+  if (umolLevel >= photoThresh) return 'photo';
+  return 'below';
+}
+
+// ===== CHART DRAWING =====
+function drawBiliChart() {
+  const canvas = document.getElementById('biliCanvas');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.parentElement.clientWidth;
+  const H = Math.round(W * 0.62);
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const pad = { top: 18, right: 18, bottom: 48, left: biliUnit === 'umol' ? 54 : 44 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  const band = getBiliThresholdBand();
+  const thresholds = BILI_THRESHOLDS[band];
+
+  // If data not yet available, show a pending notice instead of chart
+  if (!thresholdBandHasData(band)) {
+    ctx.fillStyle = '#f8f4ec';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#6b5e4a';
+    ctx.font = 'bold 13px DM Sans, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Threshold data for this gestational age', W/2, H/2 - 12);
+    ctx.fillText('is pending — awaiting verified NICE CG98 values.', W/2, H/2 + 8);
+    ctx.font = '11px DM Sans, sans-serif';
+    ctx.fillStyle = '#a89880';
+    ctx.fillText('Use official NICE CG98 charts in the meantime.', W/2, H/2 + 28);
+    return;
+  }
+
+  // Determine axis range
+  const maxHours = 168;
+  const allExchange = thresholds.exchange.map(p => fromUmol(p[1]));
+  const maxY = Math.ceil(Math.max(...allExchange) * 1.1 / 50) * 50;
+  const minY = 0;
+
+  function xPx(h) { return pad.left + (h / maxHours) * cw; }
+  function yPx(v) { return pad.top + ch - ((v - minY) / (maxY - minY)) * ch; }
+
+  // Background zones
+  // Exchange zone (red tint)
+  ctx.beginPath();
+  thresholds.exchange.forEach(([h, v], i) => {
+    const x = xPx(h), y = yPx(fromUmol(v));
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.lineTo(xPx(maxHours), yPx(maxY));
+  ctx.lineTo(xPx(0), yPx(maxY));
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(252,228,236,0.5)';
+  ctx.fill();
+
+  // Photo zone (amber tint) - between photo and exchange lines
+  ctx.beginPath();
+  thresholds.photo.forEach(([h, v], i) => {
+    const x = xPx(h), y = yPx(fromUmol(v));
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  // trace back along exchange line
+  [...thresholds.exchange].reverse().forEach(([h, v]) => {
+    ctx.lineTo(xPx(h), yPx(fromUmol(v)));
+  });
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(255,243,224,0.7)';
+  ctx.fill();
+
+  // Grid lines
+  ctx.strokeStyle = '#e2ddd3';
+  ctx.lineWidth = 0.8;
+  // horizontal
+  const yStep = biliUnit === 'umol' ? 50 : 3;
+  for (let v = minY; v <= maxY; v += yStep) {
+    const y = yPx(v);
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cw, y); ctx.stroke();
+  }
+  // vertical
+  for (let h = 0; h <= maxHours; h += 24) {
+    const x = xPx(h);
+    ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, pad.top + ch); ctx.stroke();
+  }
+
+  // Threshold lines
+  function drawThreshLine(points, color, dash) {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.setLineDash(dash || []);
+    points.forEach(([h, v], i) => {
+      const x = xPx(h), y = yPx(fromUmol(v));
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  drawThreshLine(thresholds.photo, '#e65100', [6, 3]);
+  drawThreshLine(thresholds.exchange, '#c62828', []);
+
+  // Axes labels
+  ctx.fillStyle = '#8a7d68';
+  ctx.font = '10px DM Sans, sans-serif';
+  ctx.textAlign = 'center';
+  // x axis
+  for (let h = 0; h <= maxHours; h += 24) {
+    ctx.fillText(h, xPx(h), H - 10);
+  }
+  ctx.fillText(t('biliAgeHours'), pad.left + cw / 2, H - 1);
+
+  // y axis
+  ctx.textAlign = 'right';
+  for (let v = minY; v <= maxY; v += yStep) {
+    ctx.fillText(biliUnit === 'umol' ? v : v.toFixed(0), pad.left - 5, yPx(v) + 4);
+  }
+  // y axis label
+  ctx.save();
+  ctx.translate(10, pad.top + ch / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center';
+  ctx.fillText(unitLabel(), 0, 0);
+  ctx.restore();
+
+  // Plot readings
+  if (biliReadings.length > 0) {
+    const validReadings = biliReadings.filter(r => r.ageHours !== null && r.ageHours >= 0 && r.ageHours <= maxHours * 1.1);
+
+    // Line connecting readings
+    if (validReadings.length > 1) {
+      ctx.beginPath();
+      ctx.strokeStyle = '#2c2416';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([]);
+      validReadings.forEach((r, i) => {
+        const x = xPx(r.ageHours);
+        const y = yPx(fromUmol(r.umolLevel));
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+
+    // Dots
+    validReadings.forEach(r => {
+      const x = xPx(r.ageHours);
+      const y = yPx(fromUmol(r.umolLevel));
+      const zone = r.zone;
+      const dotColor = zone === 'exchange' ? '#c62828' : zone === 'photo' ? '#e65100' : '#2e7d32';
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = dotColor;
+      ctx.fill();
+      ctx.strokeStyle = '#fffdf8';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    });
+  }
+
+  // Border
+  ctx.strokeStyle = '#d4cec0';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([]);
+  ctx.strokeRect(pad.left, pad.top, cw, ch);
+}
+
+// ===== RENDER ENGINE =====
+function renderApp() {
+  const app = document.getElementById('app');
+  if (screen === 'lang') { renderLangSplash(); return; }
+  if (screen === 'home') { renderHome(); return; }
+  if (screen === 'stool' || screen === 'vomit') { mode = screen; renderColourTool(); return; }
+  if (screen === 'bili') { renderBiliTool(); return; }
+}
+
+// ===== LANG SPLASH =====
+function renderLangSplash() {
+  document.getElementById('app').innerHTML = `
+    <div class="lang-splash">
+      <h1>Paediatric Clinical Tools</h1>
+      <p>Offer Clinigol Pediatrig</p>
+      <button class="lang-btn" onclick="selectLang('cy')">
+        <span class="lang-flag">🏴󠁧󠁢󠁷󠁬󠁳󠁿</span> Cymraeg
+      </button>
+      <button class="lang-btn" onclick="selectLang('en')">
+        <span class="lang-flag">🇬🇧</span> English
+      </button>
+    </div>`;
+}
+
+function selectLang(l) {
+  lang = l;
+  document.documentElement.lang = l === 'cy' ? 'cy' : 'en';
+  screen = 'home';
+  renderApp();
+}
+
+// ===== HOME MENU =====
+function renderHome() {
+  document.getElementById('app').innerHTML = `
+    <div class="home-screen">
+      <div class="home-header">
+        <div class="lang-toggle-wrap">
+          <div class="lang-toggle">
+            <button class="${lang==='en'?'active':''}" onclick="switchLang('en')">EN</button>
+            <button class="${lang==='cy'?'active':''}" onclick="switchLang('cy')">CY</button>
+          </div>
+        </div>
+        <h1>${t('appTitle')}</h1>
+        <p>${t('appSubtitle')}</p>
+      </div>
+      <div class="home-cards">
+        <div class="tool-card bili" onclick="goTo('bili')">
+          <div class="tool-card-icon">🟡</div>
+          <div class="tool-card-text">
+            <div class="tool-card-title">${t('homeBiliTitle')}</div>
+            <div class="tool-card-desc">${t('homeBiliDesc')}</div>
+          </div>
+          <div class="tool-card-arrow">›</div>
+        </div>
+        <div class="tool-card stool" onclick="goTo('stool')">
+          <div class="tool-card-icon">💩</div>
+          <div class="tool-card-text">
+            <div class="tool-card-title">${t('homeStoolTitle')}</div>
+            <div class="tool-card-desc">${t('homeStoolDesc')}</div>
+          </div>
+          <div class="tool-card-arrow">›</div>
+        </div>
+        <div class="tool-card vomit" onclick="goTo('vomit')">
+          <div class="tool-card-icon">🤢</div>
+          <div class="tool-card-text">
+            <div class="tool-card-title">${t('homeVomitTitle')}</div>
+            <div class="tool-card-desc">${t('homeVomitDesc')}</div>
+          </div>
+          <div class="tool-card-arrow">›</div>
+        </div>
+      </div>
+      <div class="home-footer">
+        <p>${t('footerLine1')}<br>${t('footerLine2')}</p>
+        <div style="margin-top:10px;font-size:9px;color:#c4b898">BigBevan Technologies</div>
+      </div>
+    </div>`;
+}
+
+function switchLang(l) {
+  lang = l;
+  document.documentElement.lang = l;
+  renderApp();
+}
+
+function goTo(s) {
+  screen = s;
+  if (s === 'stool') { mode = 'stool'; view = 'camera'; capturedImage = null; pickerPos = null; analysisResult = null; expandedCard = null; }
+  if (s === 'vomit') { mode = 'vomit'; view = 'camera'; capturedImage = null; pickerPos = null; analysisResult = null; expandedCard = null; }
+  renderApp();
+}
+
+function goHome() {
+  screen = 'home';
+  renderApp();
+}
+
+// ===== COLOUR TOOL =====
+function renderColourTool() {
+  const title = mode === 'stool' ? t('stoolTitle') : t('vomitTitle');
+  document.getElementById('app').innerHTML = `
+    <div class="tool-screen">
+      <div class="install-banner" id="installBanner">
+        <p>Add to your home screen for quick access</p>
+        <button onclick="installPWA()">Install</button>
+        <button class="close-install" onclick="dismissInstall()">✕</button>
+      </div>
+      <div class="header">
+        <div class="header-top">
+          <h1>${title}</h1>
+          <button class="back-btn" onclick="goHome()">${t('back')}</button>
+        </div>
+      </div>
+      <div class="view-toggle">
+        <button class="view-btn ${view==='camera'?'active':''}" onclick="setView('camera')">${t('cameraMatch')}</button>
+        <button class="view-btn ${view==='reference'?'active':''}" onclick="setView('reference')">${t('referenceCard')}</button>
+      </div>
+      <div class="content" id="contentArea"></div>
+      <div class="footer">
+        <div style="margin-bottom:14px">
+          <div style="font-size:10px;font-weight:700;color:#8a7d68;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">${t('references')}</div>
+          <p style="font-size:10px;color:#a89880;line-height:1.7;text-align:left">
+            Franciscovich A, et al. <em>PLOS ONE</em>. 2015;10(7):e0132270.<br>
+            Shen Z, et al. <em>J Pediatr Surg</em>. 2016;51:2091-2094.<br>
+            Angelico R, et al. <em>J Med Screen</em>. 2021;28(3):230-237.<br>
+            Chen SM, et al. <em>Pediatrics</em>. 2006;117(4):1147-1154.
+          </p>
+        </div>
+        <p>${t('footerLine1')}<br>${t('footerLine2')}</p>
+      </div>
+    </div>`;
+  render();
+}
+
+function setView(v) {
+  view = v;
+  render();
+}
+
+function render() {
+  const el = document.getElementById('contentArea');
+  if (!el) return;
+  if (view === 'camera') renderCamera(el); else renderReference(el);
+}
+
+function renderCamera(el) {
+  let html = '';
+  if (mode === 'stool') html += renderStoolStrip();
+  if (!capturedImage) {
+    html += `<div style="display:flex;flex-direction:column;gap:10px">
+      <div class="upload-area" onclick="document.getElementById('fileInputCamera').click()">
+        <div style="font-size:44px;margin-bottom:12px">📷</div>
+        <div style="font-size:16px;font-weight:700;color:#2c2416;margin-bottom:6px">${t('takePhoto')}</div>
+        <div style="font-size:13px;color:#8a7d68;line-height:1.5">${t('takePhotoDesc')}</div>
+      </div>
+      <div class="upload-area" onclick="document.getElementById('fileInputLibrary').click()">
+        <div style="font-size:44px;margin-bottom:12px">🖼</div>
+        <div style="font-size:16px;font-weight:700;color:#2c2416;margin-bottom:6px">${t('photoLibrary')}</div>
+        <div style="font-size:13px;color:#8a7d68;line-height:1.5">${t('photoLibraryDesc')}</div>
+      </div>
+    </div>
+    <input type="file" id="fileInputCamera" accept="image/*" capture="environment" onchange="handleFile(event)" style="display:none">
+    <input type="file" id="fileInputLibrary" accept="image/*" onchange="handleFile(event)" style="display:none">
+    <div class="tips-box">
+      <h3>${t('tipsTitle')}</h3>
+      <p>
+        <strong>${t('tipLighting')}</strong> ${t('tipLightingDesc')}<br>
+        <strong>${t('tipFraming')}</strong> ${t('tipFramingDesc')}<br>
+        <strong>${t('tipSampling')}</strong> ${t('tipSamplingDesc')}<br>
+        <strong>${t('tipRepeat')}</strong> ${t('tipRepeatDesc')}
+      </p>
+    </div>`;
+  } else {
+    const tapText = mode === 'stool' ? t('tapStool') : t('tapVomit');
+    html += `<div class="canvas-wrap">
+      <canvas id="analysisCanvas"></canvas>
+      ${pickerPos ? `<div class="picker-ring" style="left:${pickerPos.x}px;top:${pickerPos.y}px;${analysisResult?`background:rgb(${analysisResult.col.r},${analysisResult.col.g},${analysisResult.col.b})`:''}" id="pickerRing"></div>` : ''}
+      ${!pickerPos ? `<div class="tap-hint">${tapText}<small>${t('toAnalyse')}</small></div>` : ''}
+    </div>
+    <div class="actions">
+      <button class="btn-secondary" onclick="resetCamera()">${t('newPhoto')}</button>
+      <button class="btn-primary" onclick="document.getElementById('retakeCamera').click()">${t('retake')}</button>
+      <button class="btn-primary" onclick="document.getElementById('retakeLibrary').click()">${t('library')}</button>
+    </div>
+    <input type="file" id="retakeCamera" accept="image/*" capture="environment" onchange="handleFile(event)" style="display:none">
+    <input type="file" id="retakeLibrary" accept="image/*" onchange="handleFile(event)" style="display:none">`;
+    if (analysisResult) html += renderResult(analysisResult);
+  }
+  el.innerHTML = html;
+  if (capturedImage) {
+    requestAnimationFrame(() => {
+      const canvas = document.getElementById('analysisCanvas');
+      if (!canvas) return;
+      const img = new Image();
+      img.onload = () => {
+        const maxW = el.clientWidth - 4, maxH = 380, sc = Math.min(maxW/img.width, maxH/img.height, 1);
+        canvas.width = img.width * sc; canvas.height = img.height * sc;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.onclick = handleCanvasTap; canvas.ontouchstart = handleCanvasTap;
+      };
+      img.src = capturedImage;
+    });
+  }
+}
+
+function renderReference(el) {
+  const refs = getRefs(); let html = '';
+  const refNote = mode === 'stool' ? t('stoolRefNote') : t('vomitRefNote');
+  html += `<div style="background:#fffdf8;border:1px solid #e2ddd3;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#6b5e4a;line-height:1.55;font-style:italic">${refNote}</div>`;
+  if (mode === 'stool') html += renderStoolStrip();
+  for (const item of refs) {
+    const urg = isUrg(item), isExp = expandedCard === item.id;
+    const bc = isExp ? (urg ? '#ef9a9a' : '#a5d6a7') : '#e2ddd3';
+    const lbl = item.label ? tField(item.label) : (urg ? t('ABNORMAL') : t('NORMAL'));
+    html += `<div class="ref-card${isExp?' expanded':''}" style="border-color:${bc}" onclick="toggleCard('${item.id}')">
+      <div class="ref-card-inner">
+        <div class="ref-swatch" style="background:${item.hex};border-right:3px solid ${urg?'#c6282840':'#2e7d3230'}">
+          ${item.n ? `<span class="strip-num ${urg?'abn':'norm'}" style="font-size:18px">${item.n}</span>` : ''}
+          ${urg ? '<span style="font-size:16px">⚠</span>' : ''}
+        </div>
+        <div class="ref-content">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+            <div>
+              <div class="ref-name">${tField(item.name)}</div>
+              <div class="ref-desc">${tField(item.desc)}</div>
+            </div>
+            <span class="badge ${urg?'badge-urg':'badge-norm'}">${lbl}</span>
+          </div>
+          ${isExp ? `<div class="ref-detail">
+            ${tField(item.tip) ? `<div class="alert-box" style="background:#fff3e0;border:1px solid #ffe0b2">
+              <p style="font-size:12px;color:#e65100;font-weight:600">${tField(item.tip)}</p>
+            </div>` : ''}
+            <div class="alert-box" style="background:${urg?'#fce4ec':'#e8f5e9'};border:1px solid ${urg?'#f8bbd0':'#c8e6c9'}">
+              <div class="alert-title" style="color:${urg?'#c62828':'#2e7d32'}">${t('management')}</div>
+              <p style="font-size:12px;color:${urg?'#b71c1c':'#1b5e20'}">${tField(item.mgmt)}</p>
+            </div>
+          </div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+function renderStoolStrip() {
+  const matchId = analysisResult?.match?.id || expandedCard;
+  let h = `<div style="margin-bottom:16px">
+    <div class="strip-header">
+      <span>${t('stoolCard')}</span>
+      <span><span style="color:#c62828">${t('abnormal')}</span> | <span style="color:#2e7d32">${t('normal')}</span></span>
+    </div><div class="strip">`;
+  for (const c of STOOL_CARDS) {
+    const matched = matchId === c.id;
+    h += `<div class="strip-cell${matched?' matched':''}" style="background:${c.hex}"><div class="strip-num ${c.cat==='abnormal'?'abn':'norm'}">${c.n}</div>${matched?'<div style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);font-size:10px">▲</div>':''}</div>`;
+  }
+  h += '</div></div>'; return h;
+}
+
+function renderResult(res) {
+  const m = res.match, urg = isUrg(m), bc = urg?'#c62828':'#2e7d32', bg = urg?'#fce4ec':'#e8f5e9', tc = urg?'#b71c1c':'#1b5e20';
+  let h = `<div class="result" style="border-color:${bc}">
+    <div class="result-header" style="background:${bg};border-bottom:1px solid ${bc}40">
+      <div class="result-swatch" style="background:rgb(${res.col.r},${res.col.g},${res.col.b})"></div>
+      <div>
+        <div class="result-label" style="color:${tc}">${urg?(mode==='stool'?t('abnormalInvestigate'):t('redFlag')):t('normalLabel')}</div>
+        <div class="result-name">${tField(m.name)}${m.n?`<span style="font-size:14px;font-weight:600;color:#6b5e4a;margin-left:8px">${t('card')} ${m.n}</span>`:''}</div>
+      </div>
+    </div>
+    <div class="result-body">
+      <p class="result-desc">${tField(m.desc)}</p>`;
+  if (tField(m.tip)) { h += `<div class="alert-box" style="background:#fff3e0;border:1px solid #ffe0b2"><div class="alert-title" style="color:#e65100">${t('keyPoint')}</div><p style="color:#bf360c">${tField(m.tip)}</p></div>`; }
+  h += `<div class="alert-box" style="background:${urg?'#fce4ec':'#f1f8e9'};border:1px solid ${urg?'#f8bbd0':'#c8e6c9'}"><div class="alert-title" style="color:${urg?'#c62828':'#33691e'}">${t('management')}</div><p style="color:${urg?'#b71c1c':'#1b5e20'}">${tField(m.mgmt)}</p></div>`;
+  if (mode === 'stool' && urg) { h += `<div class="alert-box" style="background:#fce4ec;border:1px solid #ef9a9a"><div class="alert-title" style="color:#c62828">${t('baAlert')}</div><p style="color:#b71c1c">${t('baText')}</p></div>`; }
+  h += `<div class="tech-toggle" onclick="event.stopPropagation();toggleTech()">${showTech?'▾':'▸'} ${t('colourDetail')}</div>`;
+  if (showTech) { h += `<div class="tech-detail"><div>Sampled RGB: (${res.col.r}, ${res.col.g}, ${res.col.b})</div><div>HSV: H=${res.hsv.h.toFixed(1)}° S=${res.hsv.s.toFixed(1)}% V=${res.hsv.v.toFixed(1)}%</div><div>Saturation: ${res.hsv.s<30?t('satLow'):t('satOk')}</div><div>Closest match: ${tField(m.name)} (score: ${m.score.toFixed(1)})</div><div>Confidence: ${res.confidence.toFixed(0)}%</div><div style="margin-top:6px;font-size:10px;font-style:italic">HSV method per Franciscovich et al. (PLOS ONE 2015) and Shen et al. (J Pediatr Surg 2016)</div></div>`; }
+  h += '</div></div>'; return h;
+}
+
+// ===== EVENT HANDLERS (colour tool) =====
+function handleFile(e){const f=e.target.files?.[0];if(!f)return;const rd=new FileReader();rd.onload=(ev)=>{capturedImage=ev.target.result;pickerPos=null;analysisResult=null;showTech=false;render();};rd.readAsDataURL(f);}
+function handleCanvasTap(e){e.preventDefault();const canvas=document.getElementById('analysisCanvas');if(!canvas)return;const rect=canvas.getBoundingClientRect();const clientX=e.clientX??e.touches?.[0]?.clientX;const clientY=e.clientY??e.touches?.[0]?.clientY;const x=clientX-rect.left,y=clientY-rect.top;const sx=canvas.width/rect.width,sy=canvas.height/rect.height;pickerPos={x,y};const ctx=canvas.getContext('2d');const rad=Math.max(6,Math.min(canvas.width,canvas.height)*0.025);const col=sampleArea(ctx,x*sx,y*sy,rad);const hsv=rgb2hsv(col.r,col.g,col.b);const res=matchColour(hsv,getRefs());analysisResult={...res,col,hsv};showTech=false;render();}
+function resetCamera(){capturedImage=null;pickerPos=null;analysisResult=null;showTech=false;render();}
+function toggleCard(id){expandedCard=expandedCard===id?null:id;render();}
+function toggleTech(){showTech=!showTech;render();}
+
+// ===== BILIRUBIN TOOL =====
+function renderBiliTool() {
+  // Set default dates to today
+  const today = new Date().toISOString().split('T')[0];
+  if (!biliSampleDate) biliSampleDate = today;
+  if (!biliDOB) biliDOB = today;
+
+  const band = getBiliThresholdBand();
+
+  let readingsHTML = '';
+  if (biliReadings.length === 0) {
+    readingsHTML = `<div style="text-align:center;padding:16px;font-size:13px;color:#a89880;font-style:italic">${t('biliNoReadings')}</div>`;
+  } else {
+    readingsHTML = `<div class="readings-list">`;
+    biliReadings.forEach((r, i) => {
+      const zone = r.zone;
+      const zoneCls = zone === 'exchange' ? 'zone-exchange' : zone === 'photo' ? 'zone-photo' : zone === 'unknown' ? 'zone-unknown' : 'zone-below';
+      const zoneLabel = zone === 'exchange' ? t('biliZoneExchange') : zone === 'photo' ? t('biliZonePhoto') : zone === 'unknown' ? t('biliZoneUnknown') : t('biliZoneBelow');
+      const displayVal = biliUnit === 'umol' ? r.umolLevel.toFixed(0) : umolToMgdl(r.umolLevel).toFixed(1);
+      const ageLabel = r.ageHours !== null ? `${r.ageHours.toFixed(1)} ${t('biliHoursOld')}` : '—';
+      readingsHTML += `<div class="reading-item">
+        <div class="reading-item-left">
+          <div class="reading-item-time">${r.date} ${r.time}</div>
+          <div class="reading-item-age">${ageLabel}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="reading-item-val">${displayVal} ${unitLabel()}</div>
+          <span class="reading-item-zone ${zoneCls}">${zoneLabel}</span>
+          <button class="delete-reading" onclick="deleteReading(${i})">✕</button>
+        </div>
+      </div>`;
+    });
+    readingsHTML += `</div>`;
+  }
+
+  // Latest reading result box
+  let resultHTML = '';
+  if (biliReadings.length > 0) {
+    const latest = biliReadings[biliReadings.length - 1];
+    const zone = latest.zone;
+    if (zone === 'unknown') {
+      resultHTML = `<div class="bili-result-box" style="background:#f3f4f6;border-color:#d1d5db">
+        <div class="bili-result-title" style="color:#6b7280">${t('biliZoneUnknown')}</div>
+        <div class="bili-result-text" style="color:#374151">${t('biliZoneUnknownText')}</div>
+      </div>`;
+    } else if (zone === 'below') {
+      resultHTML = `<div class="bili-result-box" style="background:#e8f5e9;border-color:#a5d6a7">
+        <div class="bili-result-title" style="color:#2e7d32">${t('biliResultBelow')}</div>
+        <div class="bili-result-text" style="color:#1b5e20">${t('biliResultBelowText')}</div>
+      </div>`;
+    } else if (zone === 'photo') {
+      resultHTML = `<div class="bili-result-box" style="background:#fff3e0;border-color:#ffcc80">
+        <div class="bili-result-title" style="color:#e65100">${t('biliResultPhoto')}</div>
+        <div class="bili-result-text" style="color:#bf360c">${t('biliResultPhotoText')}</div>
+      </div>`;
+    } else {
+      resultHTML = `<div class="bili-result-box" style="background:#fce4ec;border-color:#ef9a9a">
+        <div class="bili-result-title" style="color:#c62828">${t('biliResultExchange')}</div>
+        <div class="bili-result-text" style="color:#b71c1c">${t('biliResultExchangeText')}</div>
+      </div>`;
+    }
+  }
+
+  document.getElementById('app').innerHTML = `
+    <div class="tool-screen">
+      <div class="header">
+        <div class="header-top">
+          <h1>${t('biliTitle')}</h1>
+          <button class="back-btn" onclick="goHome()">${t('back')}</button>
+        </div>
+      </div>
+      <div class="bili-content">
+
+        <!-- Patient details -->
+        <div class="bili-section">
+          <div class="bili-section-title">${t('biliInputSection')}</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>${t('biliDOB')}</label>
+              <input type="date" id="biliDOBInput" value="${biliDOB}" onchange="biliDOB=this.value;refreshBiliReadings()">
+            </div>
+            <div class="form-group">
+              <label>${t('biliTOB')}</label>
+              <input type="time" id="biliTOBInput" value="${biliTOB}" onchange="biliTOB=this.value;refreshBiliReadings()">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>${t('biliGestation')}</label>
+            <select id="biliGestInput" onchange="biliGestation=this.value;renderApp()">
+              <option value="38" ${biliGestation==='38'?'selected':''}>≥38 weeks (Term)</option>
+              <option value="37" ${biliGestation==='37'?'selected':''}>37 weeks</option>
+              <option value="36" ${biliGestation==='36'?'selected':''}>36 weeks</option>
+              <option value="35" ${biliGestation==='35'?'selected':''}>35 weeks</option>
+              <option value="34" ${biliGestation==='34'?'selected':''}>34 weeks</option>
+              <option value="33" ${biliGestation==='33'?'selected':''}>33 weeks</option>
+              <option value="32" ${biliGestation==='32'?'selected':''}>32 weeks</option>
+              <option value="31" ${biliGestation==='31'?'selected':''}>31 weeks</option>
+              <option value="30" ${biliGestation==='30'?'selected':''}>30 weeks</option>
+              <option value="29" ${biliGestation==='29'?'selected':''}>29 weeks</option>
+              <option value="28" ${biliGestation==='28'?'selected':''}>28 weeks</option>
+              <option value="27" ${biliGestation==='27'?'selected':''}>27 weeks</option>
+              <option value="26" ${biliGestation==='26'?'selected':''}>26 weeks</option>
+              <option value="25" ${biliGestation==='25'?'selected':''}>25 weeks</option>
+              <option value="24" ${biliGestation==='24'?'selected':''}>24 weeks</option>
+              <option value="23" ${biliGestation==='23'?'selected':''}>23 weeks</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Add reading -->
+        <div class="bili-section">
+          <div class="bili-section-title">${t('biliReadingSection')}</div>
+          <div style="margin-bottom:12px">
+            <div style="font-size:11px;font-weight:700;color:#6b5e4a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">${t('biliUnit')}</div>
+            <div class="unit-toggle">
+              <button class="unit-btn ${biliUnit==='umol'?'active':''}" onclick="biliUnit='umol';renderApp()">µmol/L</button>
+              <button class="unit-btn ${biliUnit==='mgdl'?'active':''}" onclick="biliUnit='mgdl';renderApp()">mg/dL</button>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>${t('biliDate')}</label>
+              <input type="date" id="biliSampleDateInput" value="${biliSampleDate}" onchange="biliSampleDate=this.value">
+            </div>
+            <div class="form-group">
+              <label>${t('biliTime')}</label>
+              <input type="time" id="biliSampleTimeInput" value="${biliSampleTime}" onchange="biliSampleTime=this.value">
+            </div>
+          </div>
+          <div class="form-row" style="margin-bottom:14px">
+            <div class="form-group">
+              <label>${t('biliLevel')} (${unitLabel()})</label>
+              <input type="number" id="biliLevelInputEl" min="0" step="${biliUnit==='umol'?'1':'0.1'}" placeholder="${biliUnit==='umol'?'e.g. 250':'e.g. 14.6'}" value="${biliLevelInput}" onchange="biliLevelInput=this.value" oninput="biliLevelInput=this.value">
+            </div>
+          </div>
+          <button class="add-reading-btn" onclick="addBiliReading()">${t('biliAddBtn')}</button>
+        </div>
+
+        <!-- Readings list -->
+        <div class="bili-section">
+          <div class="bili-section-title">${t('biliReadings')}</div>
+          ${readingsHTML}
+          ${biliReadings.length > 0 ? `<button class="clear-btn" onclick="clearBiliReadings()">${t('biliClearAll')}</button>` : ''}
+        </div>
+
+        <!-- Chart -->
+        <div class="bili-section" style="padding:14px 14px 10px">
+          <div class="bili-section-title">${t('biliChartTitle')} — ${biliGestation >= 38 ? '≥38 weeks (Term)' : biliGestation + ' weeks'}</div>
+          <div class="chart-wrap">
+            <canvas id="biliCanvas"></canvas>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#e65100;height:3px;border-top:2px dashed #e65100;background:none;width:16px"></div>${t('biliPhotoLine')}</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#c62828"></div>${t('biliExchangeLine')}</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#2c2416"></div>${t('biliPlotLine')}</div>
+          </div>
+        </div>
+
+        ${resultHTML}
+
+        <div style="padding:10px 4px;font-size:10px;color:#a89880;line-height:1.7;font-style:italic">${t('biliFooter')}</div>
+
+      </div>
+    </div>`;
+
+  requestAnimationFrame(() => drawBiliChart());
+}
+
+function addBiliReading() {
+  const dateEl = document.getElementById('biliSampleDateInput');
+  const timeEl = document.getElementById('biliSampleTimeInput');
+  const levelEl = document.getElementById('biliLevelInputEl');
+  const date = dateEl ? dateEl.value : biliSampleDate;
+  const time = timeEl ? timeEl.value : biliSampleTime;
+  const levelRaw = levelEl ? parseFloat(levelEl.value) : parseFloat(biliLevelInput);
+
+  if (!date || !time || isNaN(levelRaw) || levelRaw <= 0) {
+    alert(lang === 'cy' ? 'Rhowch ddyddiad, amser a lefel filirubin ddilys.' : 'Please enter a valid date, time and bilirubin level.');
+    return;
+  }
+
+  biliSampleDate = date;
+  biliSampleTime = time;
+
+  const umolLevel = toUmol(levelRaw);
+  const ageHours = calcAgeHours(date, time);
+  const zone = (ageHours !== null) ? getBiliZone(ageHours, umolLevel) : 'below';
+
+  biliReadings.push({ date, time, umolLevel, ageHours, zone });
+  biliReadings.sort((a, b) => (a.ageHours || 0) - (b.ageHours || 0));
+
+  biliLevelInput = '';
+  renderApp();
+}
+
+function deleteReading(i) {
+  biliReadings.splice(i, 1);
+  renderApp();
+}
+
+function clearBiliReadings() {
+  biliReadings = [];
+  renderApp();
+}
+
+function refreshBiliReadings() {
+  // Recalculate age hours after DOB/TOB change
+  biliReadings = biliReadings.map(r => {
+    const ageHours = calcAgeHours(r.date, r.time);
+    const zone = (ageHours !== null) ? getBiliZone(ageHours, r.umolLevel) : 'below';
+    return { ...r, ageHours, zone };
+  });
+  renderApp();
+}
+
+// ===== PWA INSTALL =====
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; const ib = document.getElementById('installBanner'); if (ib) ib.style.display = 'flex'; });
+function installPWA() { if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(() => { deferredPrompt = null; dismissInstall(); }); } }
+function dismissInstall() { const ib = document.getElementById('installBanner'); if (ib) ib.style.display = 'none'; }
+
+// ===== CLEAR OLD SERVICE WORKER AND CACHES =====
+if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(function(registrations) { for (let r of registrations) { r.unregister(); } }); caches.keys().then(function(names) { for (let n of names) { caches.delete(n); } }); }
+
+// ===== INIT =====
+renderLangSplash();
+</script>
+</body>
+</html>
