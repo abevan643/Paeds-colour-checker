@@ -155,6 +155,7 @@ button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparen
 </head>
 <body>
 <div class="container" id="app"></div>
+<button id="persistBackBtn" style="display:none;position:fixed;top:calc(env(safe-area-inset-top) + 28px);right:20px;z-index:9999;padding:7px 14px;border:1.5px solid rgba(196,168,106,0.7);border-radius:8px;background:rgba(44,36,22,0.85);color:#c4b898;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;">← Back</button>
 <script>
 // ===== TRANSLATIONS =====
 const T = {
@@ -719,12 +720,35 @@ function drawBiliChart() {
 
 // ===== RENDER ENGINE =====
 function renderApp() {
-  const app = document.getElementById('app');
   if (screen === 'lang') { renderLangSplash(); return; }
   if (screen === 'home') { renderHome(); return; }
   if (screen === 'stool' || screen === 'vomit') { mode = screen; renderColourTool(); return; }
   if (screen === 'bili') { renderBiliTool(); return; }
 }
+
+// ===== SINGLE DELEGATED EVENT HANDLER =====
+// One listener on #app handles ALL clicks via data-action attributes.
+// This is never destroyed when innerHTML changes, so navigation always works.
+document.body.addEventListener('click', function(e) {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const action = el.dataset.action;
+  const val = el.dataset.val;
+  if (action === 'lang')      { selectLang(val); }
+  if (action === 'switchlang'){ switchLang(val); }
+  if (action === 'goto')      { goTo(val); }
+  if (action === 'home')      { goHome(); }
+  if (action === 'view')      { setView(val); }
+  if (action === 'install')   { installPWA(); }
+  if (action === 'dismiss')   { dismissInstall(); }
+  if (action === 'togglecard'){ toggleCard(val); }
+  if (action === 'toggletech'){ toggleTech(); }
+  if (action === 'resetcam')  { resetCamera(); }
+  if (action === 'addreading'){ addBiliReading(); }
+  if (action === 'delreading'){ deleteReading(parseInt(val)); }
+  if (action === 'clearreads'){ clearBiliReadings(); }
+  if (action === 'setunit')   { biliUnit = val; renderApp(); }
+});
 
 // ===== LANG SPLASH =====
 function renderLangSplash() {
@@ -732,10 +756,10 @@ function renderLangSplash() {
     <div class="lang-splash">
       <h1>Paediatric Clinical Tools</h1>
       <p>Offer Clinigol Pediatrig</p>
-      <button class="lang-btn" onclick="selectLang('cy')">
+      <button class="lang-btn" data-action="lang" data-val="cy">
         <span class="lang-flag">🏴󠁧󠁢󠁷󠁬󠁳󠁿</span> Cymraeg
       </button>
-      <button class="lang-btn" onclick="selectLang('en')">
+      <button class="lang-btn" data-action="lang" data-val="en">
         <span class="lang-flag">🇬🇧</span> English
       </button>
     </div>`;
@@ -755,29 +779,29 @@ function renderHome() {
       <div class="home-header">
         <div class="lang-toggle-wrap">
           <div class="lang-toggle">
-            <button class="${lang==='en'?'active':''}" onclick="switchLang('en')">EN</button>
-            <button class="${lang==='cy'?'active':''}" onclick="switchLang('cy')">CY</button>
+            <button class="${lang==='en'?'active':''}" data-action="switchlang" data-val="en">EN</button>
+            <button class="${lang==='cy'?'active':''}" data-action="switchlang" data-val="cy">CY</button>
           </div>
         </div>
         <h1>${t('appTitle')}</h1>
         <p>${t('appSubtitle')}</p>
       </div>
       <div class="home-cards">
-        <div class="tool-card bili" onclick="goTo('bili')">
+        <div class="tool-card bili" data-action="goto" data-val="bili">
           <div class="tool-card-icon">🟡</div>
           <div class="tool-card-text">
             <div class="tool-card-title">${t('homeBiliTitle')}</div>
           </div>
           <div class="tool-card-arrow">›</div>
         </div>
-        <div class="tool-card stool" onclick="goTo('stool')">
+        <div class="tool-card stool" data-action="goto" data-val="stool">
           <div class="tool-card-icon">💩</div>
           <div class="tool-card-text">
             <div class="tool-card-title">${t('homeStoolTitle')}</div>
           </div>
           <div class="tool-card-arrow">›</div>
         </div>
-        <div class="tool-card vomit" onclick="goTo('vomit')">
+        <div class="tool-card vomit" data-action="goto" data-val="vomit">
           <div class="tool-card-icon">🤢</div>
           <div class="tool-card-text">
             <div class="tool-card-title">${t('homeVomitTitle')}</div>
@@ -802,11 +826,13 @@ function goTo(s) {
   screen = s;
   if (s === 'stool') { mode = 'stool'; view = 'camera'; capturedImage = null; pickerPos = null; analysisResult = null; expandedCard = null; }
   if (s === 'vomit') { mode = 'vomit'; view = 'camera'; capturedImage = null; pickerPos = null; analysisResult = null; expandedCard = null; }
+  showBackBtn(lang === 'cy' ? '← Yn ôl' : '← Back');
   renderApp();
 }
 
 function goHome() {
   screen = 'home';
+  hideBackBtn();
   renderApp();
 }
 
@@ -817,18 +843,17 @@ function renderColourTool() {
     <div class="tool-screen">
       <div class="install-banner" id="installBanner">
         <p>Add to your home screen for quick access</p>
-        <button onclick="installPWA()">Install</button>
-        <button class="close-install" onclick="dismissInstall()">✕</button>
+        <button data-action="install">Install</button>
+        <button class="close-install" data-action="dismiss">✕</button>
       </div>
       <div class="header">
         <div class="header-top">
           <h1>${title}</h1>
-          <button class="back-btn" onclick="goHome()">${t('back')}</button>
         </div>
       </div>
       <div class="view-toggle">
-        <button class="view-btn ${view==='camera'?'active':''}" onclick="setView('camera')">${t('cameraMatch')}</button>
-        <button class="view-btn ${view==='reference'?'active':''}" onclick="setView('reference')">${t('referenceCard')}</button>
+        <button class="view-btn ${view==='camera'?'active':''}" data-action="view" data-val="camera">${t('cameraMatch')}</button>
+        <button class="view-btn ${view==='reference'?'active':''}" data-action="view" data-val="reference">${t('referenceCard')}</button>
       </div>
       <div class="content" id="contentArea"></div>
       <div class="footer">
@@ -893,7 +918,7 @@ function renderCamera(el) {
       ${!pickerPos ? `<div class="tap-hint">${tapText}<small>${t('toAnalyse')}</small></div>` : ''}
     </div>
     <div class="actions">
-      <button class="btn-secondary" onclick="resetCamera()">${t('newPhoto')}</button>
+      <button class="btn-secondary" data-action="resetcam">${t('newPhoto')}</button>
       <button class="btn-primary" onclick="document.getElementById('retakeCamera').click()">${t('retake')}</button>
       <button class="btn-primary" onclick="document.getElementById('retakeLibrary').click()">${t('library')}</button>
     </div>
@@ -927,7 +952,7 @@ function renderReference(el) {
     const urg = isUrg(item), isExp = expandedCard === item.id;
     const bc = isExp ? (urg ? '#ef9a9a' : '#a5d6a7') : '#e2ddd3';
     const lbl = item.label ? tField(item.label) : (urg ? t('ABNORMAL') : t('NORMAL'));
-    html += `<div class="ref-card${isExp?' expanded':''}" style="border-color:${bc}" onclick="toggleCard('${item.id}')">
+    html += `<div class="ref-card${isExp?' expanded':''}" style="border-color:${bc}" data-action="togglecard" data-val="${item.id}">
       <div class="ref-card-inner">
         <div class="ref-swatch" style="background:${item.hex};border-right:3px solid ${urg?'#c6282840':'#2e7d3230'}">
           ${item.n ? `<span class="strip-num ${urg?'abn':'norm'}" style="font-size:18px">${item.n}</span>` : ''}
@@ -986,7 +1011,7 @@ function renderResult(res) {
   if (tField(m.tip)) { h += `<div class="alert-box" style="background:#fff3e0;border:1px solid #ffe0b2"><div class="alert-title" style="color:#e65100">${t('keyPoint')}</div><p style="color:#bf360c">${tField(m.tip)}</p></div>`; }
   h += `<div class="alert-box" style="background:${urg?'#fce4ec':'#f1f8e9'};border:1px solid ${urg?'#f8bbd0':'#c8e6c9'}"><div class="alert-title" style="color:${urg?'#c62828':'#33691e'}">${t('management')}</div><p style="color:${urg?'#b71c1c':'#1b5e20'}">${tField(m.mgmt)}</p></div>`;
   if (mode === 'stool' && urg) { h += `<div class="alert-box" style="background:#fce4ec;border:1px solid #ef9a9a"><div class="alert-title" style="color:#c62828">${t('baAlert')}</div><p style="color:#b71c1c">${t('baText')}</p></div>`; }
-  h += `<div class="tech-toggle" onclick="event.stopPropagation();toggleTech()">${showTech?'▾':'▸'} ${t('colourDetail')}</div>`;
+  h += `<div class="tech-toggle" data-action="toggletech">${showTech?'▾':'▸'} ${t('colourDetail')}</div>`;
   if (showTech) { h += `<div class="tech-detail"><div>Sampled RGB: (${res.col.r}, ${res.col.g}, ${res.col.b})</div><div>HSV: H=${res.hsv.h.toFixed(1)}° S=${res.hsv.s.toFixed(1)}% V=${res.hsv.v.toFixed(1)}%</div><div>Saturation: ${res.hsv.s<30?t('satLow'):t('satOk')}</div><div>Closest match: ${tField(m.name)} (score: ${m.score.toFixed(1)})</div><div>Confidence: ${res.confidence.toFixed(0)}%</div><div style="margin-top:6px;font-size:10px;font-style:italic">HSV method per Franciscovich et al. (PLOS ONE 2015) and Shen et al. (J Pediatr Surg 2016)</div></div>`; }
   h += '</div></div>'; return h;
 }
@@ -1000,6 +1025,7 @@ function toggleTech(){showTech=!showTech;render();}
 
 // ===== BILIRUBIN TOOL =====
 function renderBiliTool() {
+  showBackBtn(lang === 'cy' ? '← Yn ôl' : '← Back');
   // Set default dates to today
   const today = new Date().toISOString().split('T')[0];
   if (!biliSampleDate) biliSampleDate = today;
@@ -1026,7 +1052,7 @@ function renderBiliTool() {
         <div style="display:flex;align-items:center;gap:8px">
           <div class="reading-item-val">${displayVal} ${unitLabel()}</div>
           <span class="reading-item-zone ${zoneCls}">${zoneLabel}</span>
-          <button class="delete-reading" onclick="deleteReading(${i})">✕</button>
+          <button class="delete-reading" data-action="delreading" data-val="${i}">✕</button>
         </div>
       </div>`;
     });
@@ -1066,7 +1092,6 @@ function renderBiliTool() {
       <div class="header">
         <div class="header-top">
           <h1>${t('biliTitle')}</h1>
-          <button class="back-btn" onclick="goHome()">${t('back')}</button>
         </div>
       </div>
       <div class="bili-content">
@@ -1113,8 +1138,8 @@ function renderBiliTool() {
           <div style="margin-bottom:12px">
             <div style="font-size:11px;font-weight:700;color:#6b5e4a;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">${t('biliUnit')}</div>
             <div class="unit-toggle">
-              <button class="unit-btn ${biliUnit==='umol'?'active':''}" onclick="biliUnit='umol';renderApp()">µmol/L</button>
-              <button class="unit-btn ${biliUnit==='mgdl'?'active':''}" onclick="biliUnit='mgdl';renderApp()">mg/dL</button>
+              <button class="unit-btn ${biliUnit==='umol'?'active':''}" data-action="setunit" data-val="umol">µmol/L</button>
+              <button class="unit-btn ${biliUnit==='mgdl'?'active':''}" data-action="setunit" data-val="mgdl">mg/dL</button>
             </div>
           </div>
           <div class="form-row">
@@ -1133,14 +1158,14 @@ function renderBiliTool() {
               <input type="number" id="biliLevelInputEl" min="0" step="${biliUnit==='umol'?'1':'0.1'}" placeholder="${biliUnit==='umol'?'e.g. 250':'e.g. 14.6'}" value="${biliLevelInput}" onchange="biliLevelInput=this.value" oninput="biliLevelInput=this.value">
             </div>
           </div>
-          <button class="add-reading-btn" onclick="addBiliReading()">${t('biliAddBtn')}</button>
+          <button class="add-reading-btn" data-action="addreading">${t('biliAddBtn')}</button>
         </div>
 
         <!-- Readings list -->
         <div class="bili-section">
           <div class="bili-section-title">${t('biliReadings')}</div>
           ${readingsHTML}
-          ${biliReadings.length > 0 ? `<button class="clear-btn" onclick="clearBiliReadings()">${t('biliClearAll')}</button>` : ''}
+          ${biliReadings.length > 0 ? `<button class="clear-btn" data-action="clearreads">${t('biliClearAll')}</button>` : ''}
         </div>
 
         <!-- Chart -->
@@ -1231,7 +1256,43 @@ function dismissInstall() { const ib = document.getElementById('installBanner');
 // ===== CLEAR OLD SERVICE WORKER AND CACHES =====
 if ('serviceWorker' in navigator) { navigator.serviceWorker.getRegistrations().then(function(registrations) { for (let r of registrations) { r.unregister(); } }); caches.keys().then(function(names) { for (let n of names) { caches.delete(n); } }); }
 
+// ===== EXPOSE FUNCTIONS TO WINDOW (required for onclick in dynamic HTML) =====
+window.goHome = goHome;
+window.goTo = goTo;
+window.selectLang = selectLang;
+window.switchLang = switchLang;
+window.setView = setView;
+window.handleFile = handleFile;
+window.resetCamera = resetCamera;
+window.toggleCard = toggleCard;
+window.toggleTech = toggleTech;
+window.addBiliReading = addBiliReading;
+window.deleteReading = deleteReading;
+window.clearBiliReadings = clearBiliReadings;
+window.refreshBiliReadings = refreshBiliReadings;
+window.installPWA = installPWA;
+window.dismissInstall = dismissInstall;
+
 // ===== INIT =====
+// Persistent back button - always in DOM, never destroyed
+(function() {
+  var btn = document.getElementById('persistBackBtn');
+  btn.addEventListener('click', function() {
+    screen = 'home';
+    renderApp();
+    btn.style.display = 'none';
+  });
+})();
+
+function showBackBtn(txt) {
+  var btn = document.getElementById('persistBackBtn');
+  btn.textContent = txt || '← Back';
+  btn.style.display = 'block';
+}
+function hideBackBtn() {
+  document.getElementById('persistBackBtn').style.display = 'none';
+}
+
 renderLangSplash();
 </script>
 </body>
