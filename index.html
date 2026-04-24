@@ -155,6 +155,10 @@ button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparen
 </head>
 <body>
 <div class="container" id="app"></div>
+<div id="persistLangToggle" style="display:none;position:fixed;top:calc(env(safe-area-inset-top) + 12px);left:20px;z-index:9999;display:flex;gap:0;border:1.5px solid #c4a86a;border-radius:8px;overflow:hidden;">
+  <button id="langBtnEn" style="padding:6px 14px;border:none;background:transparent;color:#c4b898;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;">EN</button>
+  <button id="langBtnCy" style="padding:6px 14px;border:none;background:transparent;color:#c4b898;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;">CY</button>
+</div>
 <button id="persistBackBtn" style="display:none;position:fixed;top:calc(env(safe-area-inset-top) + 28px);right:20px;z-index:9999;padding:7px 14px;border:1.5px solid rgba(196,168,106,0.7);border-radius:8px;background:rgba(44,36,22,0.85);color:#c4b898;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;">← Back</button>
 <script>
 // ===== TRANSLATIONS =====
@@ -769,20 +773,16 @@ function selectLang(l) {
   lang = l;
   document.documentElement.lang = l === 'cy' ? 'cy' : 'en';
   screen = 'home';
+  showLangToggle();
   renderApp();
 }
 
 // ===== HOME MENU =====
 function renderHome() {
+  showLangToggle();
   document.getElementById('app').innerHTML = `
     <div class="home-screen">
       <div class="home-header">
-        <div class="lang-toggle-wrap">
-          <div class="lang-toggle">
-            <button class="${lang==='en'?'active':''}" data-action="switchlang" data-val="en">EN</button>
-            <button class="${lang==='cy'?'active':''}" data-action="switchlang" data-val="cy">CY</button>
-          </div>
-        </div>
         <h1>${t('appTitle')}</h1>
         <p>${t('appSubtitle')}</p>
       </div>
@@ -819,6 +819,12 @@ function renderHome() {
 function switchLang(l) {
   lang = l;
   document.documentElement.lang = l;
+  updateLangToggle();
+  // Update back button text for current language
+  var backBtn = document.getElementById('persistBackBtn');
+  if (backBtn.style.display !== 'none') {
+    backBtn.textContent = l === 'cy' ? '← Yn ôl' : '← Back';
+  }
   renderApp();
 }
 
@@ -827,12 +833,14 @@ function goTo(s) {
   if (s === 'stool') { mode = 'stool'; view = 'camera'; capturedImage = null; pickerPos = null; analysisResult = null; expandedCard = null; }
   if (s === 'vomit') { mode = 'vomit'; view = 'camera'; capturedImage = null; pickerPos = null; analysisResult = null; expandedCard = null; }
   showBackBtn(lang === 'cy' ? '← Yn ôl' : '← Back');
+  showLangToggle();
   renderApp();
 }
 
 function goHome() {
   screen = 'home';
   hideBackBtn();
+  hideLangToggle();
   renderApp();
 }
 
@@ -1026,6 +1034,7 @@ function toggleTech(){showTech=!showTech;render();}
 // ===== BILIRUBIN TOOL =====
 function renderBiliTool() {
   showBackBtn(lang === 'cy' ? '← Yn ôl' : '← Back');
+  showLangToggle();
   // Set default dates to today
   const today = new Date().toISOString().split('T')[0];
   if (!biliSampleDate) biliSampleDate = today;
@@ -1276,13 +1285,36 @@ window.dismissInstall = dismissInstall;
 // ===== INIT =====
 // Persistent back button - always in DOM, never destroyed
 (function() {
-  var btn = document.getElementById('persistBackBtn');
-  btn.addEventListener('click', function() {
+  // Back button
+  var backBtn = document.getElementById('persistBackBtn');
+  backBtn.addEventListener('click', function() {
     screen = 'home';
+    hideBackBtn();
+    hideLangToggle();
     renderApp();
-    btn.style.display = 'none';
   });
+
+  // Language toggle
+  document.getElementById('langBtnEn').addEventListener('click', function() { switchLang('en'); });
+  document.getElementById('langBtnCy').addEventListener('click', function() { switchLang('cy'); });
 })();
+
+function showLangToggle() {
+  var el = document.getElementById('persistLangToggle');
+  el.style.display = 'flex';
+  updateLangToggle();
+}
+function hideLangToggle() {
+  document.getElementById('persistLangToggle').style.display = 'none';
+}
+function updateLangToggle() {
+  var en = document.getElementById('langBtnEn');
+  var cy = document.getElementById('langBtnCy');
+  var activeStyle = 'background:#c4a86a;color:#2c2416;';
+  var inactiveStyle = 'background:transparent;color:#c4b898;';
+  en.style.cssText = en.style.cssText.replace(/background:[^;]+;color:[^;]+;/, '') + (lang === 'en' ? activeStyle : inactiveStyle);
+  cy.style.cssText = cy.style.cssText.replace(/background:[^;]+;color:[^;]+;/, '') + (lang === 'cy' ? activeStyle : inactiveStyle);
+}
 
 function showBackBtn(txt) {
   var btn = document.getElementById('persistBackBtn');
